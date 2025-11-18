@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { AppError } from '../utils/errorHandler.js';
+import User from '../models/User.js';
 
-export const protect = (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     let token;
 
@@ -10,9 +11,9 @@ export const protect = (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     }
 
-    // Check for token in cookies
-    if (!token && req.cookies?.jwt) {
-      token = req.cookies.jwt;
+    // Check for token in cookies (accessToken)
+    if (!token && req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
     }
 
     if (!token) {
@@ -21,7 +22,15 @@ export const protect = (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Verify user still exists and token version matches
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
     req.user = decoded;
+    req.userDoc = user; // Attach full user document for convenience
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
@@ -30,7 +39,7 @@ export const protect = (req, res, next) => {
     if (error instanceof jwt.TokenExpiredError) {
       throw new AppError('Token expired. Please log in again', 401);
     }
-    throw new AppError(error.message, 401);
+    throw error;
   }
 };
 

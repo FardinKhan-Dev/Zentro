@@ -1,0 +1,37 @@
+name: SMTP Validate
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+
+jobs:
+  smtp-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (server)
+        working-directory: server
+        run: npm ci
+
+      - name: Run SMTP test script
+        working-directory: server
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        run: |
+          node scripts/send_test_email.js
+
+      - name: Success message
+        if: success()
+        run: echo "SMTP validated successfully. Secrets and connectivity are OK."

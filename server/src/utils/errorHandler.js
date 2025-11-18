@@ -16,6 +16,12 @@ export const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.message = err.message || 'Internal Server Error';
 
+  // Log full error for non-production environments (helpful for tests)
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.error('Unhandled Error:', err);
+  }
+
   // Wrong MongoDB ID Error
   if (err.name === 'CastError') {
     const message = `Resource not found: ${err.value}`;
@@ -52,7 +58,7 @@ export const globalErrorHandler = (err, req, res, next) => {
   res.status(err.statusCode).json({
     success: false,
     message: err.message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
   });
 };
 

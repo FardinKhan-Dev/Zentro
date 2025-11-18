@@ -1,0 +1,68 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_ENV: test
+  JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-secret-key-min-32-chars-length' }}
+  JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'ci-refresh-secret-min-32-chars-l' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    services:
+      mongodb:
+        image: mongo:latest
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:latest
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: 'server/package-lock.json'
+      
+      - name: Install server dependencies
+        working-directory: ./server
+        run: npm install
+      
+      - name: Run tests
+        working-directory: ./server
+        run: npm test -- --detectOpenHandles --runInBand
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/zentro-test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-secret-key-min-32-chars-length' }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'ci-refresh-secret-min-32-chars-l' }}

@@ -239,3 +239,46 @@ MIT License - see LICENSE file for details
 ## Support
 
 For issues and questions, please create an issue on GitHub.
+
+## Production SMTP & Email Deliverability
+
+When you run Zentro in production you must provide real SMTP credentials and follow deliverability best practices.
+
+Environment variables (examples):
+- `SMTP_HOST` or `EMAIL_HOST` – SMTP server hostname (e.g. `smtp.sendgrid.net`)
+- `SMTP_PORT` or `EMAIL_PORT` – SMTP port (587 for TLS, 465 for SSL)
+- `SMTP_USER` or `EMAIL_USER` – SMTP username
+- `SMTP_PASS` or `EMAIL_PASSWORD` – SMTP password / API key
+- `EMAIL_FROM` – From address (e.g. `Zentro <no-reply@yourdomain.com>`)
+- `EMAIL_SECURE` – `true` for port 465, otherwise `false`
+- `EMAIL_TEST_TO` – test recipient used by CI validation
+
+Checklist before going live:
+- Use a dedicated sending domain or subdomain (e.g. `mail.yourdomain.com`).
+- Add SPF and DKIM records for the sending domain.
+- Configure a DMARC policy (start with `p=none` and monitor reports).
+- Use verified SMTP providers (SendGrid, Mailgun, SES, Postmark) for higher deliverability.
+- Warm up your IP or sending domain gradually if sending bulk email.
+- Keep unsubscribe and spam complaint handling in place.
+- Monitor deliverability and complaint rates.
+
+GitHub Actions SMTP validation
+- Add the following repository secrets: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`.
+- The repository contains a workflow at `.github/workflows/smtp-validate.yml` which runs `server/scripts/send_test_email.js` to verify connectivity and credentials. Use `Actions -> Run workflow` to test after adding secrets.
+
+Local testing
+- Copy `.env.example` to `.env` and set SMTP variables.
+- You can run the small test script locally in `server`:
+
+```bash
+cd server
+npm ci
+npm run send:test-email
+```
+
+Email deliverability tips
+- Prefer transactional-email providers (SES, Postmark, SendGrid) over raw SMTP for reliability.
+- Use short links, avoid URL shorteners, and keep HTML emails lightweight.
+- Authenticate and verify your sending domain (SPF/DKIM); misconfigured DNS is the most common cause of failures.
+- Monitor bounces and suppress hard-bounced addresses.
+
