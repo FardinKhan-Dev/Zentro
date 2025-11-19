@@ -26,6 +26,7 @@ import {
 } from './src/utils/errorHandler.js';
 import { apiLimiter } from './src/middleware/rateLimiter.js';
 import authRoutes from './src/routes/authRoutes.js';
+import productRoutes from './src/routes/productRoutes.js';
 import './src/config/passport.js';
 
 const app = express();
@@ -165,6 +166,8 @@ app.get('/api', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+// Product routes
+app.use('/api/products', productRoutes);
 
 // Socket.IO connection handling (only if initialized)
 if (io) {
