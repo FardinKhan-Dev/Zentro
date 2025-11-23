@@ -22,7 +22,7 @@ export const protect = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Verify user still exists and token version matches
     const user = await User.findById(decoded.id);
     if (!user) {
@@ -76,4 +76,4 @@ export const optional = (req, res, next) => {
   next();
 };
 
-export default { protect, restrictTo, optional };
+

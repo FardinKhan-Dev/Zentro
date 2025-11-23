@@ -1,12 +1,48 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useGetProductQuery, useDeleteProductMutation } from './productApi';
+import { useDispatch } from 'react-redux';
+import { productApi, useGetProductQuery, useDeleteProductMutation } from './productApi';
+import { useSocket } from '../../hooks/useSocket';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { socket, isConnected } = useSocket();
   const { data, isLoading, error } = useGetProductQuery(id);
   const [deleteProduct] = useDeleteProductMutation();
+
+  useEffect(() => {
+    if (socket && isConnected && id) {
+      // Subscribe to updates for this product
+      socket.emit('inventory:subscribe', [id]);
+      console.log(`Subscribed to inventory updates for product ${id}`);
+
+      // Listen for incoming inventory updates
+      const handleInventoryUpdate = (update) => {
+        console.log('Received inventory update:', update);
+        if (update.productId === id) {
+          // Update the RTK Query cache for this product
+          dispatch(
+            productApi.util.updateQueryData('getProduct', id, (draft) => {
+              if (draft && draft.data) {
+                draft.data.stock = update.newStock;
+              }
+            })
+          );
+        }
+      };
+
+      socket.on('inventory:update', handleInventoryUpdate);
+
+      // Cleanup on component unmount
+      return () => {
+        console.log(`Unsubscribing from inventory updates for product ${id}`);
+        socket.emit('inventory:unsubscribe', [id]);
+        socket.off('inventory:update', handleInventoryUpdate);
+      };
+    }
+  }, [socket, isConnected, id, dispatch]);
 
   if (isLoading) return <div className="p-5">Loading product...</div>;
   if (error) return <div className="p-5 text-red-600">Error loading product</div>;

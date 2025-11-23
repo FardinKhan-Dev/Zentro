@@ -27,6 +27,8 @@ import {
 import { apiLimiter } from './src/middleware/rateLimiter.js';
 import authRoutes from './src/routes/authRoutes.js';
 import productRoutes from './src/routes/productRoutes.js';
+import cartRoutes from './src/routes/cartRoutes.js';
+import orderRoutes from './src/routes/orderRoutes.js';
 import './src/config/passport.js';
 
 const app = express();
@@ -168,6 +170,10 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 // Product routes
 app.use('/api/products', productRoutes);
+// Cart routes
+app.use('/api/cart', cartRoutes);
+// Order routes
+app.use('/api/orders', orderRoutes);
 
 // Socket.IO connection handling (only if initialized)
 if (io) {

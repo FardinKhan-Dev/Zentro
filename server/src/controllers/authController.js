@@ -10,10 +10,10 @@ import {
   hashToken,
 } from '../utils/tokenService.js';
 import {
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-  sendWelcomeEmail,
-} from '../utils/emailService.js';
+  addVerificationEmailJob,
+  addPasswordResetEmailJob,
+  addWelcomeEmailJob,
+} from '../services/queueService.js';
 import { customResponse } from '../utils/response.js';
 
 export const register = catchAsync(async (req, res, next) => {
@@ -35,7 +35,7 @@ export const register = catchAsync(async (req, res, next) => {
   // Generate email verification token
   const verificationToken = user.generateEmailVerificationToken();
   await user.save({ validateBeforeSave: false });
-  
+
   // In test mode auto-verify the user to simplify login tests
   if (process.env.NODE_ENV === 'test') {
     user.isVerified = true;
@@ -44,13 +44,13 @@ export const register = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
   }
 
-  // Send verification email
+  // Queue verification email (async - doesn't block registration)
   const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
   try {
-    await sendVerificationEmail(email, verificationUrl);
+    await addVerificationEmailJob(email, verificationUrl);
   } catch (err) {
-    console.warn('Failed to send verification email:', err.message);
-    // Don't fail registration if email fails
+    console.warn('Failed to queue verification email:', err.message);
+    // Don't fail registration if queue fails
   }
 
   // Don't set cookies yet - user must verify email first
@@ -80,11 +80,11 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
   user.emailVerificationTokenExpire = null;
   await user.save();
 
-  // Send welcome email
+  // Queue welcome email (async)
   try {
-    await sendWelcomeEmail(user.email, user.name);
+    await addWelcomeEmailJob(user.email, user.name);
   } catch (err) {
-    console.warn('Failed to send welcome email:', err.message);
+    console.warn('Failed to queue welcome email:', err.message);
   }
 
   // Set tokens after verification
@@ -198,16 +198,16 @@ export const requestPasswordReset = catchAsync(async (req, res, next) => {
   const resetToken = user.generatePasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  // Send reset email
+  // Queue password reset email (async)
   const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
   try {
-    await sendPasswordResetEmail(email, resetUrl);
+    await addPasswordResetEmailJob(email, resetUrl);
   } catch (err) {
-    // Clear tokens if email fails
+    // Clear tokens if email queue fails
     user.passwordResetToken = null;
     user.passwordResetTokenExpire = null;
     await user.save({ validateBeforeSave: false });
-    throw new AppError('Failed to send password reset email', 500);
+    throw new AppError('Failed to queue password reset email', 500);
   }
 
   return customResponse(res, { status: 200, success: true, message: 'Password reset link sent to email' });

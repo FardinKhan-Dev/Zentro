@@ -70,6 +70,14 @@ cd server
 npm test -- --watch
 ```
 
+### Run Queue Integration Tests
+```bash
+cd server
+npm test -- tests/queue.integration.test.js
+```
+
+**Note**: Queue integration tests require Redis to be running. In CI, Redis is automatically started as a service.
+
 ## Test Coverage
 
 Current tests cover:
@@ -81,6 +89,40 @@ Current tests cover:
 - ✅ Password change (token invalidation on change)
 - ✅ Token refresh edge cases (missing, invalid, version mismatch)
 - ✅ Google OAuth redirect handler (mocked)
+- ✅ Product CRUD operations
+- ✅ Queue integration (email & analytics queues)
+- ✅ Queue job submission and priority handling
+- ✅ Queue statistics and monitoring
+
+## Queue Integration Tests
+
+The queue integration tests (`tests/queue.integration.test.js`) validate:
+
+### Email Queue Tests
+- Job submission for welcome, verification, and password reset emails
+- Order confirmation email jobs (with higher priority)
+- Timestamp inclusion in job data
+- Retry configuration (3 attempts with exponential backoff)
+- Priority handling (order confirmations = 1, others = 5)
+
+### Analytics Queue Tests  
+- Job submission for analytics processing
+- Retry configuration (2 attempts with exponential backoff)
+- Job data integrity
+
+### Queue Statistics Tests
+- Queue stat retrieval (waiting, active, completed, failed counts)
+- Statistics for both email and analytics queues
+
+### Job Processing Tests
+- Priority-based job ordering
+- Job data integrity throughout lifecycle
+- Error handling and graceful failures
+
+**Running in CI:**
+- Redis service is automatically started
+- Queue tests run after unit tests
+- Tests use `--detectOpenHandles` and `--runInBand` flags
 
 ## Design Decisions
 
@@ -94,6 +136,11 @@ Current tests cover:
 - Allows testing password-reset and verification flows without SMTP setup.
 - Production email service initializes normally with `initializeEmailService()` when `NODE_ENV !== 'test'`.
 
+### Queue Service in Tests
+- Queues use lazy initialization to prevent Redis connection errors during module loading.
+- Unit tests don't require Redis; integration tests do.
+- Worker processes are not started in test mode.
+
 ### Passport Strategy in Tests
 - GoogleStrategy is skipped during test mode (guarded by `NODE_ENV !== 'test'`).
 - Tests for the redirect handler use a direct controller invocation with mocked req/res.
@@ -104,4 +151,7 @@ Current tests cover:
 - Add rate-limiting behavior tests
 - Implement Google OAuth full e2e with test strategy
 - Add refresh-token reuse detection with persistent token identifiers
-- Expand test coverage to include other features (Products, Cloudinary, Stripe)
+- Expand test coverage to Stripe integration
+- Add worker process integration tests
+- Add queue resilience tests (Redis failures, job timeouts)
+

@@ -206,6 +206,12 @@ npm run test:coverage
 - `POST /api/auth/login` - Login with credentials
 - `GET /api/auth/google` - Google OAuth
 - `POST /api/auth/logout` - Logout
+- `POST /api/auth/change-password` - Change user password (protected)
+- `POST /api/auth/forgot-password` - Request password reset email
+- `POST /api/auth/reset-password` - Reset password with token
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/verify-email` - Verify email with token
+
 
 ### Product Endpoints
 - `GET /api/products` - List products (with filters)
@@ -281,4 +287,3 @@ Email deliverability tips
 - Use short links, avoid URL shorteners, and keep HTML emails lightweight.
 - Authenticate and verify your sending domain (SPF/DKIM); misconfigured DNS is the most common cause of failures.
 - Monitor bounces and suppress hard-bounced addresses.
-

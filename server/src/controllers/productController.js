@@ -1,6 +1,8 @@
 import Product from '../models/Product.js';
 import cloudinary from '../config/cloudinary.js';
 import { catchAsync, AppError } from '../utils/errorHandler.js';
+import { getIO } from '../websocket/socket.js';
+import { emitInventoryUpdate } from '../websocket/events/inventoryHandlers.js';
 
 const uploadBufferToCloudinary = (buffer, folder = 'zentro/products') => {
   return new Promise((resolve, reject) => {
@@ -55,6 +57,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   const prod = await Product.findById(req.params.id);
   if (!prod) throw new AppError('Product not found', 404);
 
+  const oldStock = prod.stock; // Capture old stock
   const updates = ['name', 'description', 'price', 'category', 'stock', 'featured', 'metadata'];
   updates.forEach((k) => {
     if (req.body[k] !== undefined) prod[k] = req.body[k];
@@ -67,6 +70,13 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   }
 
   await prod.save();
+
+  // If stock was updated, emit a socket event
+  if (req.body.stock !== undefined && req.body.stock !== oldStock) {
+    const io = getIO();
+    emitInventoryUpdate(io, prod.id, prod.stock);
+  }
+
   return res.json({ success: true, status: 'success', data: prod });
 });
 

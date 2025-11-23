@@ -69,3 +69,14 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME || '' }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY || '' }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET || '' }}
+      
+      - name: Run queue integration tests
+        working-directory: ./server
+        run: npm test -- tests/queue.integration.test.js --detectOpenHandles --runInBand
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/zentro-test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-secret-key-min-32-chars-length' }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'ci-refresh-secret-min-32-chars-l' }}
+
