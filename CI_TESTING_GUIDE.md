@@ -81,32 +81,6 @@ npm test -- tests/queue.integration.test.js
 ## Test Coverage
 
 Current tests cover:
-- ✅ User registration with auto-verification in test mode
-- ✅ Login with valid credentials
-- ✅ Password reset flow (token generation & reset)
-- ✅ Token refresh (access token refresh via cookie)
-- ✅ Logout (cookie clearing & token invalidation)
-- ✅ Password change (token invalidation on change)
-- ✅ Token refresh edge cases (missing, invalid, version mismatch)
-- ✅ Google OAuth redirect handler (mocked)
-- ✅ Product CRUD operations
-- ✅ Queue integration (email & analytics queues)
-- ✅ Queue job submission and priority handling
-- ✅ Queue statistics and monitoring
-
-## Queue Integration Tests
-
-The queue integration tests (`tests/queue.integration.test.js`) validate:
-
-### Email Queue Tests
-- Job submission for welcome, verification, and password reset emails
-- Order confirmation email jobs (with higher priority)
-- Timestamp inclusion in job data
-- Retry configuration (3 attempts with exponential backoff)
-- Priority handling (order confirmations = 1, others = 5)
-
-### Analytics Queue Tests  
-- Job submission for analytics processing
 - Retry configuration (2 attempts with exponential backoff)
 - Job data integrity
 

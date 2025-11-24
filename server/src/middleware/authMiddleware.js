@@ -76,4 +76,7 @@ export const optional = (req, res, next) => {
   next();
 };
 
+// Alias for clarity in cart routes
+export const optionalAuth = optional;
 
+export default { protect, restrictTo, optional, optionalAuth };

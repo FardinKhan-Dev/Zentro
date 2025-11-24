@@ -29,6 +29,7 @@ import authRoutes from './src/routes/authRoutes.js';
 import productRoutes from './src/routes/productRoutes.js';
 import cartRoutes from './src/routes/cartRoutes.js';
 import orderRoutes from './src/routes/orderRoutes.js';
+import paymentRoutes from './src/routes/paymentRoutes.js';
 import './src/config/passport.js';
 
 const app = express();
@@ -151,6 +152,22 @@ app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
 }));
+
+// IMPORTANT: Stripe webhook needs raw body BEFORE express.json()
+// This must come before the JSON body parser
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }),
+  (req, res, next) => {
+    // Import the webhook handler dynamically to avoid circular dependencies
+    import('./src/controllers/paymentController.js')
+      .then(module => module.handleWebhook(req, res))
+      .catch(err => {
+        console.error('Webhook handler error:', err);
+        res.status(500).send('Internal server error');
+      });
+  }
+);
+
+// Regular JSON body parser for all other routes
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ limit: '10kb', extended: true }));
 app.use(cookieParser());
@@ -174,6 +191,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 // Order routes
 app.use('/api/orders', orderRoutes);
+// Payment routes (excluding webhook which is handled above)
+app.use('/api/payments', paymentRoutes);
 
 // Socket.IO connection handling (only if initialized)
 if (io) {

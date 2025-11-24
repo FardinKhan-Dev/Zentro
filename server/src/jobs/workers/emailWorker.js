@@ -4,7 +4,9 @@ import {
     sendWelcomeEmail,
     sendVerificationEmail,
     sendPasswordResetEmail,
-    sendEmail,
+    sendOrderConfirmationEmail,
+    sendShippingNotificationEmail,
+    sendOrderCancellationEmail,
 } from '../../utils/emailService.js';
 
 /**
@@ -13,7 +15,7 @@ import {
  */
 
 const processEmailJob = async (job) => {
-    const { type, email, name, verificationUrl, resetUrl, orderDetails } = job.data;
+    const { type, email, name, verificationUrl, resetUrl, orderDetails, trackingNumber, reason } = job.data;
 
     console.log(`📧 Processing email job: ${type} for ${email} (Job ID: ${job.id})`);
 
@@ -32,17 +34,15 @@ const processEmailJob = async (job) => {
                 break;
 
             case 'orderConfirmation':
-                // Placeholder for Phase 5 - Order confirmation email
-                await sendEmail({
-                    email,
-                    subject: 'Order Confirmation - Zentro',
-                    html: `
-            <h2>Order Confirmed</h2>
-            <p>Thank you for your order!</p>
-            <p>Order ID: ${orderDetails?.orderId || 'N/A'}</p>
-            <p>Total: ${orderDetails?.total || 'N/A'}</p>
-          `,
-                });
+                await sendOrderConfirmationEmail(email, orderDetails);
+                break;
+
+            case 'shippingNotification':
+                await sendShippingNotificationEmail(email, orderDetails, trackingNumber);
+                break;
+
+            case 'orderCancellation':
+                await sendOrderCancellationEmail(email, orderDetails, reason);
                 break;
 
             default:

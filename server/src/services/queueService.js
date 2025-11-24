@@ -59,10 +59,24 @@ export const addPasswordResetEmailJob = async (email, resetUrl) => {
 };
 
 /**
- * Add an order confirmation email job (for Phase 5)
+ * Add an order confirmation email job
  */
 export const addOrderConfirmationEmailJob = async (email, orderDetails) => {
     return addEmailJob('orderConfirmation', { email, orderDetails });
+};
+
+/**
+ * Add a shipping notification email job
+ */
+export const addShippingNotificationEmailJob = async (email, orderDetails, trackingNumber) => {
+    return addEmailJob('shippingNotification', { email, orderDetails, trackingNumber });
+};
+
+/**
+ * Add an order cancellation email job
+ */
+export const addOrderCancellationEmailJob = async (email, orderDetails, reason) => {
+    return addEmailJob('orderCancellation', { email, orderDetails, reason });
 };
 
 // ==================== ANALYTICS JOBS ====================
