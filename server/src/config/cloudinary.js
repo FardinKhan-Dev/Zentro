@@ -1,4 +1,6 @@
 import { v2 as cloudinaryLib } from 'cloudinary';
+import dotenv from 'dotenv';
+dotenv.config({path: './.env'});
 
 const cloudinaryStub = {
   uploader: {

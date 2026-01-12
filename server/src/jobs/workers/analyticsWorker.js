@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import { getRedisClient } from '../../config/redis.js';
+import { connection } from '../../config/ioredis.js';
 
 /**
  * Analytics Worker - Processes analytics jobs from the queue
@@ -41,25 +41,40 @@ const processAnalyticsJob = async (job) => {
     }
 };
 
-// Create the analytics worker
-export const analyticsWorker = new Worker('analytics', processAnalyticsJob, {
-    connection: getRedisClient(),
-    concurrency: 3,
-});
+// Factory function to start the worker
+let workerInstance = null;
 
-// Worker event handlers
-analyticsWorker.on('completed', (job, result) => {
-    console.log(`✓ Analytics job completed: ${job.id} (${result.type})`);
-});
+export const startAnalyticsWorker = () => {
+    if (workerInstance) {
+        console.log('Analytics worker already running');
+        return workerInstance;
+    }
 
-analyticsWorker.on('failed', (job, error) => {
-    console.error(`✗ Analytics job failed: ${job?.id} - ${error.message}`);
-});
+    workerInstance = new Worker('analytics', processAnalyticsJob, {
+        connection,
+        concurrency: 3,
+    });
 
-analyticsWorker.on('error', (error) => {
-    console.error('✗ Analytics worker error:', error.message);
-});
+    workerInstance.on('completed', (job, result) => {
+        console.log(`✓ Analytics job completed: ${job.id} (${result.type})`);
+    });
 
-console.log('✓ Analytics worker initialized and listening...');
+    workerInstance.on('failed', (job, error) => {
+        console.error(`✗ Analytics job failed: ${job?.id} - ${error.message}`);
+    });
 
-export default analyticsWorker;
+    workerInstance.on('error', (error) => {
+        console.error('✗ Analytics worker error:', error.message);
+    });
+
+    console.log('✓ Analytics worker initialized and listening...');
+    return workerInstance;
+};
+
+export const closeAnalyticsWorker = async () => {
+    if (workerInstance) {
+        await workerInstance.close();
+        workerInstance = null;
+        console.log('Analytics worker closed');
+    }
+};

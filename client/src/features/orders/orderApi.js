@@ -12,7 +12,7 @@ export const orderApi = baseApi.injectEndpoints({
                 method: 'POST',
                 body: orderData,
             }),
-            invalidatesTags: ['Cart'],
+            invalidatesTags: ['Cart', 'Orders'],
         }),
 
         // GET /api/orders - Get user's orders with pagination
@@ -36,6 +36,24 @@ export const orderApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { orderId }) => [{ type: 'Orders', id: orderId }, 'Orders'],
         }),
+
+        // POST /api/orders/:id/confirm-cod
+        confirmCodOrder: builder.mutation({
+            query: (orderId) => ({
+                url: `/orders/${orderId}/confirm-cod`,
+                method: 'POST',
+            }),
+            invalidatesTags: ['Cart', 'Orders'],
+        }),
+
+        // POST /api/orders/:id/sync-courier
+        syncOrderWithCourier: builder.mutation({
+            query: (orderId) => ({
+                url: `/orders/${orderId}/sync-courier`,
+                method: 'POST',
+            }),
+            invalidatesTags: (result, error, orderId) => [{ type: 'Orders', id: orderId }],
+        }),
     }),
     overrideExisting: false,
 });
@@ -45,6 +63,8 @@ export const {
     useGetUserOrdersQuery,
     useGetOrderByIdQuery,
     useCancelOrderMutation,
+    useConfirmCodOrderMutation,
+    useSyncOrderWithCourierMutation,
 } = orderApi;
 
 export default orderApi;

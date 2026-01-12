@@ -1,0 +1,117 @@
+services:
+  # MongoDB Database
+  mongo:
+    image: mongo:7.0
+    container_name: zentro-mongo
+    hostname: mongo
+    ports:
+      - "27017:27017"
+    env_file:
+      - ./server/.env
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - zentro-network
+    command: [ "mongod", "--replSet", "rs0", "--bind_ip_all" ]
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  # MongoDB Replica Set Initializer
+  mongo-init:
+    image: mongo:7.0
+    container_name: zentro-mongo-init
+    networks:
+      - zentro-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: >
+      mongosh --host mongo:27017 --eval  'try { rs.status().ok } catch (e) { rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "mongo:27017" }] }) }'
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7.2-alpine
+    container_name: zentro-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - zentro-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  # API Service (Replicated)
+  api-service:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: development # Keeping dev target for now to avoid complexity, but usually this would be production
+    # Removed container_name to allow scaling
+    # Removed ports (5000:5000) to allow scaling (nginx will proxy via internal network)
+    env_file:
+      - ./server/.env
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - zentro-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    deploy:
+      replicas: 3
+    command: npm run start:prod 
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:latest
+    container_name: zentro-lb
+    ports:
+      - "80:80" # Load Balancer Entry Point
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api-service
+    networks:
+      - zentro-network
+
+  # Worker Service
+  worker-service:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: development
+    container_name: zentro-worker
+    env_file:
+      - ./server/.env
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - zentro-network
+    command: npm run worker:dev
+
+networks:
+  zentro-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:

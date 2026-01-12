@@ -3,57 +3,13 @@ import Product from '../models/Product.js';
 import { AppError, catchAsync } from '../utils/errorHandler.js';
 import { customResponse } from '../utils/response.js';
 import { getRedisClient } from '../config/redis.js';
+import cache from '../utils/cache.js';
 
 /**
  * Get Redis cart key
  */
 const getCartCacheKey = (userId, sessionId) => {
     return userId ? `cart:user:${userId}` : `cart:session:${sessionId}`;
-};
-
-/**
- * Cache cart in Redis
- */
-const cacheCart = async (cart, userId, sessionId) => {
-    try {
-        const redis = getRedisClient();
-        const key = getCartCacheKey(userId, sessionId);
-        const ttl = 7 * 24 * 60 * 60; // 7 days
-
-        await redis.setEx(key, ttl, JSON.stringify(cart));
-    } catch (error) {
-        console.warn('Failed to cache cart in Redis:', error.message);
-        // Don't fail the request if Redis caching fails
-    }
-};
-
-/**
- * Get cart from cache
- */
-const getCachedCart = async (userId, sessionId) => {
-    try {
-        const redis = getRedisClient();
-        const key = getCartCacheKey(userId, sessionId);
-        const cached = await redis.get(key);
-
-        return cached ? JSON.parse(cached) : null;
-    } catch (error) {
-        console.warn('Failed to get cart from Redis:', error.message);
-        return null;
-    }
-};
-
-/**
- * Invalidate cart cache
- */
-const invalidateCartCache = async (userId, sessionId) => {
-    try {
-        const redis = getRedisClient();
-        const key = getCartCacheKey(userId, sessionId);
-        await redis.del(key);
-    } catch (error) {
-        console.warn('Failed to invalidate cart cache:', error.message);
-    }
 };
 
 /**
@@ -67,24 +23,29 @@ export const getCart = catchAsync(async (req, res, next) => {
         throw new AppError('User or session required', 400);
     }
 
+    const cacheKey = getCartCacheKey(userId, sessionId);
+
     // Try to get from cache first
-    let cart = await getCachedCart(userId, sessionId);
+    let cart = await cache.get(cacheKey);
 
     if (!cart) {
         // Not in cache, get from database
         if (userId) {
-            cart = await Cart.findOrCreateForUser(userId).populate('items.product', 'name price images stock');
+            cart = await Cart.findOrCreateForUser(userId)
+            await cart.populate('items.product', 'name price images stock');
         } else {
-            cart = await Cart.findOrCreateForGuest(sessionId).populate('items.product', 'name price images stock');
+            cart = await Cart.findOrCreateForGuest(sessionId)
+            await cart.populate('items.product', 'name price images stock');
         }
 
         // Cache the cart
-        await cacheCart(cart, userId, sessionId);
+        await cache.set(cacheKey, cart, 7 * 24 * 60 * 60); // 7 days
     }
 
     return customResponse(res, {
         status: 200,
         success: true,
+        message: 'Cart retrieved successfully',
         data: {
             cart,
             itemCount: cart.itemCount,
@@ -146,11 +107,15 @@ export const addItemToCart = catchAsync(async (req, res, next) => {
     cart.addItem(product, quantity);
     await cart.save();
 
+    const redis = getRedisClient();
+    if (redis) redis.zIncrBy('analytics:cart:products', quantity, productId).catch();
+
     // Populate product details
     await cart.populate('items.product', 'name price images stock');
 
     // Update cache
-    await cacheCart(cart, userId, sessionId);
+    const cacheKey = getCartCacheKey(userId, sessionId);
+    await cache.set(cacheKey, cart, 7 * 24 * 60 * 60);
 
     return customResponse(res, {
         status: 200,
@@ -208,11 +173,16 @@ export const updateCartItem = catchAsync(async (req, res, next) => {
     cart.updateQuantity(productId, quantity);
     await cart.save();
 
+
+    const redis = getRedisClient();
+    if (redis) redis.zIncrBy('analytics:cart:products', quantity, productId).catch();
+
     // Populate product details
     await cart.populate('items.product', 'name price images stock');
 
     // Update cache
-    await cacheCart(cart, userId, sessionId);
+    const cacheKey = getCartCacheKey(userId, sessionId);
+    await cache.set(cacheKey, cart, 7 * 24 * 60 * 60);
 
     return customResponse(res, {
         status: 200,
@@ -249,11 +219,15 @@ export const removeCartItem = catchAsync(async (req, res, next) => {
     cart.removeItem(productId);
     await cart.save();
 
+    const redis = getRedisClient();
+    // if (redis) redis.zIncrBy('analytics:cart:products', quantity, productId).catch(); // quantity not defined here, removed
+
     // Populate product details
     await cart.populate('items.product', 'name price images stock');
 
     // Update cache
-    await cacheCart(cart, userId, sessionId);
+    const cacheKey = getCartCacheKey(userId, sessionId);
+    await cache.set(cacheKey, cart, 7 * 24 * 60 * 60);
 
     return customResponse(res, {
         status: 200,
@@ -289,8 +263,12 @@ export const clearCart = catchAsync(async (req, res, next) => {
     cart.clearCart();
     await cart.save();
 
+    // const redis = getRedisClient();
+    // if (redis) redis.zIncrBy('analytics:cart:products', quantity, productId).catch();
+
     // Invalidate cache
-    await invalidateCartCache(userId, sessionId);
+    const cacheKey = getCartCacheKey(userId, sessionId);
+    await cache.del(cacheKey);
 
     return customResponse(res, {
         status: 200,
@@ -329,11 +307,16 @@ export const mergeGuestCart = catchAsync(async (req, res, next) => {
     await cart.populate('items.product', 'name price images stock');
 
     // Invalidate both caches
-    await invalidateCartCache(userId, null);
-    await invalidateCartCache(null, sessionId);
+    const userKey = getCartCacheKey(userId, null);
+    const sessionKey = getCartCacheKey(null, sessionId);
+
+    await Promise.all([
+        cache.del(userKey),
+        cache.del(sessionKey)
+    ]);
 
     // Cache merged cart
-    await cacheCart(cart, userId, null);
+    await cache.set(userKey, cart, 7 * 24 * 60 * 60);
 
     return customResponse(res, {
         status: 200,

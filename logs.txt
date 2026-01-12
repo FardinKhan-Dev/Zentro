@@ -1,0 +1,50 @@
+zentro-api  | Auth Debug - Cookies: [
+zentro-api  |   'rl_anonymous_id',
+zentro-api  |   'rl_page_init_referrer',
+zentro-api  |   'rl_page_init_referring_domain',
+zentro-api  |   'n8n-auth',
+zentro-api  |   'rl_user_id',
+zentro-api  |   'rl_trait',
+zentro-api  |   'rl_session',
+zentro-api  |   'ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog',
+zentro-api  |   'refreshToken',
+zentro-api  |   'sid',
+zentro-api  |   'accessToken'
+zentro-api  | ]
+zentro-api  | Auth Debug - Token found: true
+zentro-api  | pIsqgZDtwiVaNb5exhMX5OrqCmA2bW1n
+zentro-api  | [2025-12-11 01:04:13.020 +0000] [31mERROR[39m: [36mUnhandled Error[39m
+zentro-api  |     err: {
+zentro-api  |       "type": "AppError",
+zentro-api  |       "message": "Stock reservation failed: Transaction numbers are only allowed on a replica set member or mongos",
+zentro-api  |       "stack":
+zentro-api  |           Error: Stock reservation failed: Transaction numbers are only allowed on a replica set member or mongos
+zentro-api  |               at file:///app/src/controllers/orderController.js:56:15
+zentro-api  |               at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+zentro-api  |       "statusCode": 400,
+zentro-api  |       "isOperational": true
+zentro-api  |     }
+zentro-api  | [2025-12-11 01:04:13.035 +0000] [32mINFO[39m: [36mrequest completed[39m
+zentro-api  |     [35mreq[39m: {
+zentro-api  |       "method": "POST",
+zentro-api  |       "url": "/api/orders",
+zentro-api  |       "host": "localhost:5000",
+zentro-api  |       "remoteAddress": "::ffff:172.19.0.1",
+zentro-api  |       "remotePort": 35820
+zentro-api  |     }
+zentro-api  |     [35mres[39m: {
+zentro-api  |       "statusCode": 400
+zentro-api  |     }
+zentro-api  |     [35mresponseTime[39m: 129
+zentro-api  | [2025-12-11 01:04:13.064 +0000] [32mINFO[39m: [36mrequest completed[39m
+zentro-api  |     [35mreq[39m: {
+zentro-api  |       "method": "GET",
+zentro-api  |       "url": "/api/cart",
+zentro-api  |       "host": "localhost:5000",
+zentro-api  |       "remoteAddress": "::ffff:172.19.0.1",
+zentro-api  |       "remotePort": 35820
+zentro-api  |     }
+zentro-api  |     [35mres[39m: {
+zentro-api  |       "statusCode": 304
+zentro-api  |     }
+zentro-api  |     [35mresponseTime[39m: 18

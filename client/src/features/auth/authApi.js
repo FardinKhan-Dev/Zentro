@@ -8,6 +8,9 @@ export const authApi = baseApi.injectEndpoints({
     login: builder.mutation({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
     }),
+    verifyOTP: builder.mutation({
+      query: (body) => ({ url: '/auth/verify-otp', method: 'POST', body }),
+    }),
     logout: builder.mutation({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
     }),
@@ -20,11 +23,31 @@ export const authApi = baseApi.injectEndpoints({
     resetPassword: builder.mutation({
       query: (body) => ({ url: '/auth/reset-password', method: 'POST', body }),
     }),
-    verifyEmail: builder.mutation({
-      query: ({ token }) => ({ url: `/auth/verify-email?token=${encodeURIComponent(token)}`, method: 'GET' }),
+    verifyEmail: builder.query({
+      query: (token) => `/auth/verify-email/${token}`,
     }),
     changePassword: builder.mutation({
       query: (body) => ({ url: '/auth/change-password', method: 'POST', body }),
+    }),
+    getMe: builder.query({
+      query: () => ({ url: '/users/me', method: 'GET' }),
+      providesTags: ['User'],
+    }),
+    updateProfile: builder.mutation({
+      query: (body) => ({ url: '/users/me', method: 'PATCH', body }),
+      invalidatesTags: ['User'],
+    }),
+    addAddress: builder.mutation({
+      query: (body) => ({ url: '/users/me/addresses', method: 'POST', body }),
+      invalidatesTags: ['User'],
+    }),
+    deleteAddress: builder.mutation({
+      query: (addressId) => ({ url: `/users/me/addresses/${addressId}`, method: 'DELETE' }),
+      invalidatesTags: ['User'],
+    }),
+    updateAddress: builder.mutation({
+      query: ({ addressId, ...body }) => ({ url: `/users/me/addresses/${addressId}`, method: 'PATCH', body }),
+      invalidatesTags: ['User'],
     }),
   }),
   overrideExisting: false,
@@ -33,10 +56,16 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useRegisterMutation,
   useLoginMutation,
+  useVerifyOTPMutation,
   useLogoutMutation,
   useRefreshQuery,
   useRequestResetMutation,
   useResetPasswordMutation,
-  useVerifyEmailMutation,
+  useVerifyEmailQuery,
   useChangePasswordMutation,
+  useGetMeQuery,
+  useUpdateProfileMutation,
+  useAddAddressMutation,
+  useDeleteAddressMutation,
+  useUpdateAddressMutation,
 } = authApi;

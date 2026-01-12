@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { AppError } from '../utils/errorHandler.js';
 import User from '../models/User.js';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './.env' })
 
 export const protect = async (req, res, next) => {
   try {
@@ -16,12 +19,13 @@ export const protect = async (req, res, next) => {
       token = req.cookies.accessToken;
     }
 
+
     if (!token) {
       throw new AppError('You are not logged in. Please log in first', 401);
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
     // Verify user still exists and token version matches
     const user = await User.findById(decoded.id);
@@ -34,6 +38,7 @@ export const protect = async (req, res, next) => {
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
+      console.error('Auth Debug - JWT Error:', error.message);
       throw new AppError('Invalid token', 401);
     }
     if (error instanceof jwt.TokenExpiredError) {
@@ -60,12 +65,12 @@ export const optional = (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     }
 
-    if (!token && req.cookies?.jwt) {
-      token = req.cookies.jwt;
+    if (!token && req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
     }
 
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       req.user = decoded;
     }
   } catch (error) {

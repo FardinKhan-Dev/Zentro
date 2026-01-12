@@ -1,3 +1,4 @@
+import { fetchCourierStatus } from '../services/courierService.js';
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
@@ -8,21 +9,31 @@ import {
     releaseStockForOrder,
     restoreStockForOrder
 } from '../services/inventoryService.js';
+import { triggerN8nWebhook } from '../utils/n8n.js';
+import {
+    addOrderConfirmationEmailJob,
+    addShippingNotificationEmailJob,
+    addOrderCancellationEmailJob,
+    addSMSJob
+} from '../services/queueService.js';
+import { sendNotification, sendAdminNotification } from '../services/notificationService.js';
+import { trackSale } from '../services/analyticsService.js';
+import cache from '../utils/cache.js';
 
 /**
  * POST /api/orders - Create new order from cart
  */
 export const createOrder = catchAsync(async (req, res, next) => {
     const userId = req.user.id;
-    const { shippingAddress, notes } = req.body;
+    const { shippingAddress, notes, paymentMethod } = req.body;
 
     if (!shippingAddress) {
         throw new AppError('Shipping address is required', 400);
     }
 
-    const { street, city, state, zipCode, country } = shippingAddress;
-    if (!street || !city || !state || !zipCode) {
-        throw new AppError('Complete shipping address required (street, city, state, zipCode)', 400);
+    const { street, city, state, zipCode, country, phoneNumber } = shippingAddress;
+    if (!street || !city || !state || !zipCode || !phoneNumber) {
+        throw new AppError('Complete shipping address required (street, city, state, zipCode, phoneNumber)', 400);
     }
 
     // Get user's cart
@@ -76,12 +87,14 @@ export const createOrder = catchAsync(async (req, res, next) => {
         totalAmount: cart.totalPrice,
         paymentStatus: 'pending',
         orderStatus: 'pending',
+        paymentMethod: paymentMethod || 'card',
         shippingAddress: {
             street,
             city,
             state,
             zipCode,
             country: country || 'US',
+            phoneNumber,
         },
         notes: notes || '',
     });
@@ -90,16 +103,34 @@ export const createOrder = catchAsync(async (req, res, next) => {
     await order.populate('user', 'name email');
     await order.populate('items.product', 'name images');
 
-    // Note: Payment intent will be created in Step 4 (Stripe Integration)
-    // Stock is now reserved and will be deducted after payment success
+    // Notifications and Webhooks are now triggered upon confirmation (COD or Payment Success)
 
+    // Handle Cash on Delivery (COD) logic
+    if (paymentMethod === 'cod') {
+        // For COD, we clear the cart immediately and mark as success
+        cart.items = [];
+        cart.totalPrice = 0;
+        await cart.save();
+
+        return customResponse(res, {
+            status: 201,
+            success: true,
+            message: 'Order placed successfully (Cash on Delivery).',
+            data: {
+                order,
+                nextStep: 'success', // Skip payment step
+            },
+        });
+    }
+
+    // Default: Card Payment
+    // Stock is reserved, wait for payment intent in next step
     return customResponse(res, {
         status: 201,
         success: true,
         message: 'Order created successfully. Stock reserved.',
         data: {
             order,
-            // Client will use this to proceed to payment
             nextStep: 'payment',
         },
     });
@@ -112,7 +143,13 @@ export const getUserOrders = catchAsync(async (req, res, next) => {
     const userId = req.user.id;
     const { status, page = 1, limit = 10 } = req.query;
 
-    const query = { user: userId };
+    const query = {
+        user: userId,
+        $or: [
+            { paymentMethod: 'cod' },
+            { paymentStatus: { $ne: 'pending' } }
+        ]
+    };
 
     // Filter by status if provided
     if (status) {
@@ -203,7 +240,26 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
         await order.populate('user', 'name email');
         await order.populate('items.product', 'name images');
 
-        // TODO: Queue shipping notification email in Step 5
+        // Queue shipping notification email
+        if (status === 'shipped') {
+            addShippingNotificationEmailJob(
+                order.user.email,
+                {
+                    orderNumber: order.orderNumber,
+                    items: order.items
+                },
+                trackingNumber
+            );
+        }
+
+        // Queue SMS Status Update
+        if (order.shippingAddress?.phoneNumber) {
+            let msg = `Your Zentro order #${order.orderNumber} is now ${status}.`;
+            if (status === 'shipped' && trackingNumber) {
+                msg += ` Tracking: ${trackingNumber}`;
+            }
+            addSMSJob(order.shippingAddress.phoneNumber, msg);
+        }
 
         return customResponse(res, {
             status: 200,
@@ -266,12 +322,121 @@ export const cancelOrder = catchAsync(async (req, res, next) => {
     await order.populate('items.product', 'name images');
 
     // TODO: Process refund if payment was completed in Step 4
-    // TODO: Queue cancellation email in Step 5
+    // Queue cancellation email
+    // Queue cancellation email
+    addOrderCancellationEmailJob(
+        order.user.email,
+        {
+            orderNumber: order.orderNumber,
+            totalAmount: order.totalAmount
+        },
+        reason || 'Cancelled by user'
+    );
 
     return customResponse(res, {
         status: 200,
         success: true,
         message: 'Order cancelled successfully. Stock released.',
+        data: { order },
+    });
+});
+
+/**
+ * POST /api/orders/:id/confirm-cod - Confirm order as Cash on Delivery
+ */
+export const confirmCodOrder = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const order = await Order.findOne({ _id: id, user: userId });
+
+    if (!order) {
+        throw new AppError('Order not found', 404);
+    }
+
+    if (order.orderStatus !== 'pending') {
+        throw new AppError('Order cannot be updated', 400);
+    }
+
+    // Update payment method to COD
+    order.paymentMethod = 'cod';
+    order.updateStatus('processing', 'Confirmed via Cash on Delivery');
+    await order.save();
+
+    // Clear the cart (crucial step for COD finalization)
+    // Use atomic update to ensure it clears regardless of hooks
+    await Cart.findOneAndUpdate(
+        { user: userId },
+        { $set: { items: [], totalPrice: 0 } }
+    );
+    // INVALIDATE REDIS CACHE
+    await cache.del(`cart:user:${userId}`);
+
+    // Send In-App Notification
+    await sendNotification(
+        userId,
+        'Order Confirmed! (COD) 📦',
+        `Your order #${order.orderNumber} has been placed. Please pay on delivery.`,
+        'order',
+        order._id
+    );
+
+    // Send Admin Notification
+    sendAdminNotification(
+        'newOrder',
+        'New Order (COD) 📦',
+        `Order #${order.orderNumber} placed by ${order.user.name} (Cash on Delivery)`,
+        'order',
+        order._id
+    ).catch(err => console.error('Admin notif error:', err));
+
+    // Queue Email Notification
+    addOrderConfirmationEmailJob(order.user.email, {
+        orderNumber: order.orderNumber,
+        customerName: order.user.name,
+        totalAmount: order.totalAmount,
+        items: order.items,
+        shippingAddress: order.shippingAddress
+    });
+
+    // Queue SMS Confirmation
+    if (order.shippingAddress?.phoneNumber) {
+        const smsMessage = `Hi ${order.user.name}, your order #${order.orderNumber} is confirmed! Please pay $${order.totalAmount} on delivery. Thanks for shopping with Zentro! We will sent you tracking details soon.`;
+        addSMSJob(order.shippingAddress.phoneNumber, smsMessage);
+
+        // High Value Alert
+        if (order.totalAmount > 1000) {
+            addSMSJob(
+                order.shippingAddress.phoneNumber,
+                `Security Alert: A high-value transaction of $${order.totalAmount} was just placed on your account.`
+            );
+        }
+    }
+
+    // TRIGGER N8N WEBHOOK
+    triggerN8nWebhook('order-created', {
+        id: order._id,
+        orderNumber: order.orderNumber,
+        amount: order.totalAmount,
+        currency: 'USD',
+        customer: {
+            id: userId,
+            email: order.user.email
+        },
+        items: order.items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price }))
+    });
+
+    // Track Sale in Analytics (Redis)
+    trackSale({
+        totalAmount: order.totalAmount,
+        items: order.items,
+        createdAt: order.createdAt
+    }).catch(err => console.error('Failed to track sale:', err));
+
+    return customResponse(res, {
+        status: 200,
+        success: true,
+        message: 'Order confirmed (Cash on Delivery).',
         data: { order },
     });
 });
@@ -305,7 +470,8 @@ export const getAllOrders = catchAsync(async (req, res, next) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const [orders, total] = await Promise.all([
+    // Execute queries in parallel: Orders, Total Count, Global Stats
+    const [orders, total, stats] = await Promise.all([
         Order.find(query)
             .populate('user', 'name email')
             .populate('items.product', 'name images')
@@ -313,7 +479,27 @@ export const getAllOrders = catchAsync(async (req, res, next) => {
             .skip(skip)
             .limit(parseInt(limit)),
         Order.countDocuments(query),
+        Order.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalOrders: { $sum: 1 },
+                    pendingPayment: { $sum: { $cond: [{ $eq: ["$paymentStatus", "pending"] }, 1, 0] } },
+                    paidPayment: { $sum: { $cond: [{ $eq: ["$paymentStatus", "paid"] }, 1, 0] } },
+                    processing: { $sum: { $cond: [{ $eq: ["$orderStatus", "processing"] }, 1, 0] } },
+                    shipped: { $sum: { $cond: [{ $eq: ["$orderStatus", "shipped"] }, 1, 0] } },
+                    delivered: { $sum: { $cond: [{ $eq: ["$orderStatus", "delivered"] }, 1, 0] } },
+                    cancelled: { $sum: { $cond: [{ $eq: ["$orderStatus", "cancelled"] }, 1, 0] } }
+                }
+            }
+        ])
     ]);
+
+    const globalStats = stats.length > 0 ? stats[0] : {
+        totalOrders: 0, pendingPayment: 0, paidPayment: 0,
+        processing: 0, shipped: 0, delivered: 0, cancelled: 0
+    };
+    delete globalStats._id;
 
     return customResponse(res, {
         status: 200,
@@ -326,15 +512,23 @@ export const getAllOrders = catchAsync(async (req, res, next) => {
                 total,
                 pages: Math.ceil(total / parseInt(limit)),
             },
+            stats: globalStats
         },
     });
 });
 
+
+
+
+
+// Retained existing exports (if any) or simplified
 export default {
     createOrder,
-    getUserOrders,
-    getOrderById,
+    getOrder: getOrderById,
+    getMyOrders: getUserOrders,
     updateOrderStatus,
     cancelOrder,
-    getAllOrders,
+    confirmCodOrder,
+    getAllOrders
 };
+

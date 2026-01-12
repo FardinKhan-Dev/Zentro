@@ -6,6 +6,7 @@ import {
     updateOrderStatus,
     cancelOrder,
     getAllOrders,
+    confirmCodOrder
 } from '../controllers/orderController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -55,5 +56,14 @@ router.patch('/:id/status', restrictTo('admin'), updateOrderStatus);
  * @access  Private
  */
 router.post('/:id/cancel', cancelOrder);
+
+/**
+ * @route   POST /api/orders/:id/confirm-cod
+ * @desc    Confirm order as COD
+ * @access  Private
+ */
+router.post('/:id/confirm-cod', confirmCodOrder);
+
+
 
 export default router;

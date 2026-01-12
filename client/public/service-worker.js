@@ -1,81 +1,115 @@
-// Service Worker for Zentro - handles push notifications and offline support
-const CACHE_VERSION = 'v1';
-const CACHE_NAME = `zentro-${CACHE_VERSION}`;
+// ----------------------------------------------
+// Zentro Service Worker (Vite-Safe Version)
+// ----------------------------------------------
 
+const CACHE_VERSION = 'v1';
+const STATIC_CACHE = `zentro-static-${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
 ];
 
-// Install event - cache assets
+// IMPORTANT: Do NOT cache Vite dev server files.
+const isViteRequest = (url) =>
+  url.includes('localhost:5173') ||
+  url.includes('@vite') ||
+  url.includes('hot') ||
+  url.includes('vite') ||
+  url.includes('hmr');
+
+// ----------------------------------------------
+// Install: Precache essential app shell
+// ----------------------------------------------
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching app shell');
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// ----------------------------------------------
+// Activate: Clean old caches
+// ----------------------------------------------
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log('[SW] Activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log(`[SW] Deleting old cache: ${cacheName}`);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((key) => {
+        if (key !== STATIC_CACHE) {
+          console.log('[SW] Deleting old cache:', key);
+          return caches.delete(key);
+        }
+      }))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// ----------------------------------------------
+// Fetch Handler (Vite-Safe)
+// ----------------------------------------------
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
+  const req = event.request;
+  const url = req.url;
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
-    return;
+  // 1️⃣ Allow Vite HMR / dev files to bypass
+  if (isViteRequest(url)) return;
+
+  // 2️⃣ Ignore non-GET requests
+  if (req.method !== 'GET') return;
+
+  // 3️⃣ Always hit network first for HTML/JS/CSS (prevents stale builds)
+  if (req.headers.get('accept')?.includes('text/html')) {
+    return event.respondWith(networkFirst(req));
   }
 
-  // Skip API and socket.io requests (always use network)
-  if (request.url.includes('/api') || request.url.includes('/socket.io')) {
-    event.respondWith(fetch(request));
-    return;
+  if (url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.json')) {
+    return event.respondWith(networkFirst(req));
   }
 
-  // Cache-first strategy for assets
-  event.respondWith(
-    caches.match(request).then((response) => {
-      return response || fetch(request).then((networkResponse) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, networkResponse.clone());
-          return networkResponse;
-        });
-      });
-    }).catch(() => {
-      // Fallback for offline
-      return new Response('Offline', { status: 503 });
-    })
-  );
+  // 4️⃣ For images/icons → cache-first for speed
+  if (req.destination === 'image' || req.destination === 'icon') {
+    return event.respondWith(cacheFirst(req));
+  }
+
+  // 5️⃣ Default: network-first fallback
+  return event.respondWith(networkFirst(req));
 });
 
-// Handle push notifications
-self.addEventListener('push', (event) => {
-  if (!event.data) {
-    return;
+// ----------------------------------------------
+// Strategies
+// ----------------------------------------------
+async function networkFirst(request) {
+  try {
+    const fresh = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE);
+    cache.put(request, fresh.clone());
+    return fresh;
+  } catch {
+    const cache = await caches.match(request);
+    return cache || new Response('Offline', { status: 503 });
   }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  const fresh = await fetch(request);
+  const cache = await caches.open(STATIC_CACHE);
+  cache.put(request, fresh.clone());
+  return fresh;
+}
+
+// ----------------------------------------------
+// Push Notifications
+// ----------------------------------------------
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
 
   const data = event.data.json();
+
   const options = {
     body: data.body || 'New notification',
     icon: data.icon || '/icon-192x192.png',
@@ -89,22 +123,20 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Handle notification clicks
+// ----------------------------------------------
+// Notification Click
+// ----------------------------------------------
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clientList) => {
-      // Check if app window already exists
-      for (let i = 0; i < clientList.length; i += 1) {
-        if (clientList[i].url === '/' && 'focus' in clientList[i]) {
-          return clientList[i].focus();
+    clients.matchAll({ type: 'window' }).then((clientsList) => {
+      for (const client of clientsList) {
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
         }
       }
-      // Otherwise, open new window
-      if (clients.openWindow) {
-        return clients.openWindow('/');
-      }
+      return clients.openWindow('/');
     })
   );
 });

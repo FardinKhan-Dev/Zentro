@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import Order from '../models/Order.js';
+import { sendAdminNotification } from './notificationService.js';
 
 /**
  * Inventory Service
@@ -114,6 +115,19 @@ export const deductStockForOrder = async (orderItems) => {
         }
 
         await session.commitTransaction();
+
+        // Send Low Stock Notifications (Post-Transaction)
+        if (lowStockProducts.length > 0) {
+            lowStockProducts.forEach(p => {
+                sendAdminNotification(
+                    'lowStock',
+                    'Low Stock Alert ⚠️',
+                    `Product ${p.productName} is low on stock (${p.availableStock} remaining).`,
+                    'alert',
+                    p.productId
+                ).catch(err => console.error('Low stock notif error:', err));
+            });
+        }
 
         return {
             success: true,
@@ -237,6 +251,7 @@ export const releaseExpiredReservations = async (timeoutMinutes = 15) => {
         const expiredOrders = await Order.find({
             orderStatus: 'pending',
             paymentStatus: 'pending',
+            paymentMethod: 'card', // Only cancel Card orders (COD orders are valid in 'pending' state)
             createdAt: { $lt: timeoutDate },
         }).session(session);
 

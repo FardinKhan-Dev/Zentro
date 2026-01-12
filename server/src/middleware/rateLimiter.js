@@ -1,6 +1,9 @@
 import rateLimit from 'express-rate-limit';
 import { getRedisClient } from '../config/redis.js';
 import { AppError } from '../utils/errorHandler.js';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './.env' })
 
 export const createRedisLimiter = (options = {}) => {
   const {
@@ -28,7 +31,7 @@ export const createRedisLimiter = (options = {}) => {
 // Specific limiters for different endpoints
 export const authLimiter = createRedisLimiter({
   windowMs: 15 * 60 * 1000,
-  maxRequests: 5, // 5 attempts per 15 minutes
+  maxRequests: 100, // 5 attempts per 15 minutes
   message: 'Too many login attempts, please try again later',
 });
 

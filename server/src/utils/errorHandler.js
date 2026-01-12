@@ -1,3 +1,8 @@
+import logger from './logger.js';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './.env' })
+
 export class AppError extends Error {
   constructor(message, statusCode = 500) {
     super(message);
@@ -19,7 +24,7 @@ export const globalErrorHandler = (err, req, res, next) => {
   // Log full error for non-production environments (helpful for tests)
   if (process.env.NODE_ENV !== 'production') {
     // eslint-disable-next-line no-console
-    console.error('Unhandled Error:', err);
+    logger.error({ err }, 'Unhandled Error');
   }
 
   // Wrong MongoDB ID Error

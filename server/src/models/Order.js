@@ -37,6 +37,7 @@ const ShippingAddressSchema = new mongoose.Schema({
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
     country: { type: String, required: true, default: 'US' },
+    phoneNumber: { type: String, required: true },
 }, { _id: false });
 
 const StatusHistorySchema = new mongoose.Schema({
@@ -90,7 +91,11 @@ const orderSchema = new mongoose.Schema(
             type: String,
             enum: ['pending', 'paid', 'failed', 'refunded'],
             default: 'pending',
-            index: true,
+        },
+        paymentMethod: {
+            type: String,
+            enum: ['card', 'cod'],
+            default: 'card',
         },
         orderStatus: {
             type: String,
@@ -124,6 +129,8 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ user: 1, createdAt: -1 }); // Get user orders sorted by date
 orderSchema.index({ orderStatus: 1, createdAt: -1 }); // Admin queries by status
 orderSchema.index({ paymentStatus: 1 }); // Payment queries
+
+
 
 // Static method to generate unique order number
 orderSchema.statics.generateOrderNumber = async function () {

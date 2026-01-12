@@ -1,4 +1,5 @@
 import Order from '../models/Order.js';
+import Cart from '../models/Cart.js';
 import { AppError, catchAsync } from '../utils/errorHandler.js';
 import { customResponse } from '../utils/response.js';
 import {
@@ -6,9 +7,17 @@ import {
     createCheckoutSession,
     verifyWebhookSignature,
     createRefund,
+    getPaymentIntentStatus,
 } from '../services/paymentService.js';
 import { deductStockForOrder, releaseStockForOrder } from '../services/inventoryService.js';
-import { addOrderConfirmationEmailJob } from '../services/queueService.js';
+import { addOrderConfirmationEmailJob, addSMSJob } from '../services/queueService.js';
+import { trackSale } from '../services/analyticsService.js';
+import { sendNotification, sendAdminNotification } from '../services/notificationService.js';
+import { triggerN8nWebhook } from '../utils/n8n.js';
+import cache from '../utils/cache.js';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './.env' })
 
 /**
  * POST /api/payments/create-intent
@@ -91,6 +100,61 @@ export const createSession = catchAsync(async (req, res, next) => {
 });
 
 /**
+ * POST /api/payments/verify
+ * Verify payment status directly with Stripe (fallback for webhooks)
+ */
+export const verifyPayment = catchAsync(async (req, res, next) => {
+    const { paymentIntentId, orderId } = req.body;
+    const userId = req.user.id;
+
+    if (!paymentIntentId || !orderId) {
+        throw new AppError('PaymentIntent ID and Order ID are required', 400);
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+        throw new AppError('Order not found', 404);
+    }
+
+    if (order.user.toString() !== userId) {
+        throw new AppError('You do not have permission to verify this order', 403);
+    }
+
+    try {
+        // Retrieve latest status from Stripe
+        const paymentInfo = await getPaymentIntentStatus(paymentIntentId);
+
+        if (paymentInfo.status === 'succeeded') {
+            // Reuse the success handler logic
+            const mockPaymentIntent = {
+                id: paymentIntentId,
+                metadata: { orderId: orderId },
+                status: 'succeeded'
+            };
+
+            await handlePaymentSuccess(mockPaymentIntent);
+
+            return customResponse(res, {
+                status: 200,
+                success: true,
+                message: 'Payment verified and order updated',
+                data: { status: 'paid', orderId }
+            });
+        } else {
+            return customResponse(res, {
+                status: 200, // OK request, but payment not paid
+                success: false,
+                message: `Payment status is ${paymentInfo.status}`,
+                data: { status: paymentInfo.status }
+            });
+        }
+    } catch (error) {
+        throw new AppError(error.message, 400);
+    }
+});
+
+/**
  * POST /api/payments/webhook
  * Handle Stripe webhook events
  * This endpoint must use raw body parser, not JSON
@@ -149,7 +213,6 @@ export const handleWebhook = async (req, res) => {
  * Handle successful payment
  */
 const handlePaymentSuccess = async (paymentIntent) => {
-    console.log(`💰 Payment succeeded: ${paymentIntent.id}`);
 
     const orderId = paymentIntent.metadata.orderId;
 
@@ -169,14 +232,32 @@ const handlePaymentSuccess = async (paymentIntent) => {
     order.markAsPaid(paymentIntent.id);
     await order.save();
 
+    // Clear user's cart (Atomic update)
+    try {
+        await Cart.findOneAndUpdate(
+            { user: order.user._id },
+            { $set: { items: [], totalPrice: 0 } }
+        );
+        // INVALIDATE REDIS CACHE
+        await cache.del(`cart:user:${order.user._id}`);
+    } catch (error) {
+        console.error('Failed to clear cart:', error.message);
+    }
+
     // Deduct stock (convert from reserved to actual deduction)
     try {
         const { lowStockProducts } = await deductStockForOrder(order.items);
 
-        // TODO: Queue low stock notification if products are running low
-        if (lowStockProducts.length > 0) {
-            console.log('Low stock detected:', lowStockProducts);
-        }
+        // Queue low stock notification if products are running low
+        lowStockProducts.forEach((product) => {
+            sendAdminNotification(
+                'lowStock',
+                'Low Stock Alert ⚠️',
+                `Product "${product.name}" is running low on stock (${product.stock} remaining).`,
+                'product',
+                product._id
+            ).catch((err) => console.error('Low stock notification error:', err));
+        });
     } catch (error) {
         console.error('Failed to deduct stock:', error.message);
         // Continue anyway - payment was successful
@@ -186,7 +267,6 @@ const handlePaymentSuccess = async (paymentIntent) => {
     try {
         await addOrderConfirmationEmailJob(order.user.email, {
             orderNumber: order.orderNumber,
-            orderId: order._id.toString(),
             customerName: order.user.name,
             items: order.items,
             totalAmount: order.totalAmount,
@@ -196,7 +276,57 @@ const handlePaymentSuccess = async (paymentIntent) => {
         console.error('Failed to queue order confirmation email:', error.message);
     }
 
-    console.log(`✅ Order ${order.orderNumber} marked as paid`);
+    // Track sale in analytics
+    try {
+        await trackSale({
+            totalAmount: order.totalAmount,
+            items: order.items,
+            createdAt: order.createdAt,
+        });
+    } catch (error) {
+        console.error('Failed to track sale:', error.message);
+    }
+
+    // Send In-App Notification
+    await sendNotification(
+        order.user._id,
+        'Order Confirmed! 🎉',
+        `Your order #${order.orderNumber} has been successfully placed.`,
+        'order',
+        order._id
+    );
+
+    // Send Admin Notification
+    sendAdminNotification(
+        'newOrder',
+        'New Order (Paid) 💰',
+        `Order #${order.orderNumber} placed by ${order.user.name} (Paid via Card)`,
+        'order',
+        order._id
+    ).catch(err => console.error('Admin notif error:', err));
+
+    // Queue SMS Notification
+    if (order.shippingAddress?.phoneNumber) {
+        const smsMessage = `Hi ${order.user.name}, your order #${order.orderNumber} is confirmed! Total: $${order.totalAmount}. Thanks for shopping with Zentro! We will sent you tracking details soon.`;
+        addSMSJob(order.shippingAddress.phoneNumber, smsMessage);
+
+        if (order.totalAmount > 1000) {
+            addSMSJob(order.shippingAddress.phoneNumber, `Security Alert: A high-value transaction of $${order.totalAmount} was just placed on your account.`);
+        }
+    }
+
+    // Trigger N8N Webhook
+    triggerN8nWebhook('order-created', {
+        id: order._id,
+        orderNumber: order.orderNumber,
+        amount: order.totalAmount,
+        currency: 'USD',
+        customer: {
+            id: order.user._id,
+            email: order.user.email
+        },
+        items: order.items
+    });
 };
 
 /**
@@ -232,13 +362,21 @@ const handlePaymentFailure = async (paymentIntent) => {
     }
 
     console.log(`Order ${order.orderNumber} payment failed`);
+
+    // Send In-App Notification
+    await sendNotification(
+        order.user, // populate might not be called here, use user ID if not populated
+        'Payment Failed ❌',
+        `Payment for order #${order.orderNumber} failed. Please try again.`,
+        'alert',
+        order._id
+    );
 };
 
 /**
  * Handle refund
  */
 const handleRefund = async (charge) => {
-    console.log(`💸 Refund processed: ${charge.id}`);
 
     const paymentIntentId = charge.payment_intent;
 
@@ -260,8 +398,6 @@ const handleRefund = async (charge) => {
  * Handle Stripe Checkout session completion
  */
 const handleCheckoutComplete = async (session) => {
-    console.log(`🛒 Checkout session completed: ${session.id}`);
-
     const orderId = session.client_reference_id || session.metadata?.orderId;
 
     if (!orderId) {
@@ -279,6 +415,18 @@ const handleCheckoutComplete = async (session) => {
 
     order.markAsPaid(session.payment_intent);
     await order.save();
+
+    // Clear user's cart (Atomic update)
+    try {
+        await Cart.findOneAndUpdate(
+            { user: order.user._id },
+            { $set: { items: [], totalPrice: 0 } }
+        );
+        // INVALIDATE REDIS CACHE
+        await cache.del(`cart:user:${order.user._id}`);
+    } catch (error) {
+        console.error('Failed to clear cart:', error.message);
+    }
 
     // Deduct stock
     try {
@@ -298,6 +446,47 @@ const handleCheckoutComplete = async (session) => {
     } catch (error) {
         console.error('Failed to queue email:', error.message);
     }
+
+    // Send In-App Notification
+    await sendNotification(
+        order.user._id,
+        'Order Confirmed! 🎉',
+        `Your order #${order.orderNumber} has been successfully placed.`,
+        'order',
+        order._id
+    );
+
+    // Send Admin Notification
+    sendAdminNotification(
+        'newOrder',
+        'New Order (Paid) 💰',
+        `Order #${order.orderNumber} placed by ${order.user.name} (Stripe Checkout)`,
+        'order',
+        order._id
+    ).catch(err => console.error('Admin notif error:', err));
+
+    // Queue SMS Notification
+    if (order.shippingAddress?.phoneNumber) {
+        const smsMessage = `Hi ${order.user.name}, your order #${order.orderNumber} is confirmed! Total: $${order.totalAmount}. Thanks for shopping with Zentro!`;
+        addSMSJob(order.shippingAddress.phoneNumber, smsMessage);
+
+        if (order.totalAmount > 1000) {
+            addSMSJob(order.shippingAddress.phoneNumber, `Security Alert: A high-value transaction of $${order.totalAmount} was just placed on your account.`);
+        }
+    }
+
+    // Trigger N8N Webhook
+    triggerN8nWebhook('order-created', {
+        id: order._id,
+        orderNumber: order.orderNumber,
+        amount: order.totalAmount,
+        currency: 'USD',
+        customer: {
+            id: order.user._id,
+            email: order.user.email
+        },
+        items: order.items
+    });
 };
 
 /**
@@ -349,4 +538,5 @@ export default {
     createSession,
     handleWebhook,
     refundOrder,
+    verifyPayment,
 };

@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { getRedisClient } from '../../config/redis.js';
+import { connection } from '../../config/ioredis.js';
 
 let analyticsQueue;
 
@@ -10,7 +10,7 @@ let analyticsQueue;
 export const getAnalyticsQueue = () => {
     if (!analyticsQueue) {
         analyticsQueue = new Queue('analytics', {
-            connection: getRedisClient(),
+            connection,
             defaultJobOptions: {
                 attempts: 2,
                 backoff: {

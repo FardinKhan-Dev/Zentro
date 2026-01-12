@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { getRedisClient } from '../../config/redis.js';
+import { connection } from '../../config/ioredis.js';
 
 let emailQueue;
 
@@ -10,7 +10,7 @@ let emailQueue;
 export const getEmailQueue = () => {
   if (!emailQueue) {
     emailQueue = new Queue('email', {
-      connection: getRedisClient(),
+      connection,
       defaultJobOptions: {
         attempts: 3, // Retry up to 3 times
         backoff: {

@@ -1,3 +1,4 @@
+import pinoHttp from 'pino-http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -6,19 +7,16 @@ import mongoSanitize from 'express-mongo-sanitize';
 import cookieParser from 'cookie-parser';
 import sanitizeHtml from 'sanitize-html';
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
-import 'dotenv/config';
-
+import { initializeSocketIO } from './src/websocket/socket.js';
+import dotenv from 'dotenv';
 import session from 'express-session';
-import * as connectRedis from 'connect-redis';
+import { RedisStore } from 'connect-redis';
 import passport from 'passport';
-
 import connectDB from './src/config/db.js';
 import { initializeRedis, getRedisClient } from './src/config/redis.js';
 import { initializeCloudinary } from './src/config/cloudinary.js';
 import { initializeStripe } from './src/config/stripe.js';
-import { initializeEmailService } from './src/utils/emailService.js';
+import { initializeEmailService } from './src/services/emailService.js';
 import {
   globalErrorHandler,
   notFoundHandler,
@@ -30,7 +28,17 @@ import productRoutes from './src/routes/productRoutes.js';
 import cartRoutes from './src/routes/cartRoutes.js';
 import orderRoutes from './src/routes/orderRoutes.js';
 import paymentRoutes from './src/routes/paymentRoutes.js';
+import aiRoutes from './src/routes/aiRoutes.js';
+import adminRoutes from './src/routes/adminRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
+import settingsRoutes from './src/routes/settingsRoutes.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
+import reviewRoutes from './src/routes/reviewRoutes.js';
+import healthRoutes from './src/routes/healthRoutes.js';
 import './src/config/passport.js';
+import logger from './src/utils/logger.js';
+
+dotenv.config({ path: './.env' });
 
 const app = express();
 const httpServer = createServer(app);
@@ -50,8 +58,6 @@ if (process.env.NODE_ENV !== 'test') {
   initializeStripe();
   initializeEmailService();
   // Setup session store (Redis)
-  const RedisStoreFactory = (connectRedis && connectRedis.default) ? connectRedis.default : connectRedis;
-  const RedisStore = RedisStoreFactory(session);
   const sessionStore = new RedisStore({ client: redisClient });
 
   app.use(
@@ -60,7 +66,7 @@ if (process.env.NODE_ENV !== 'test') {
       name: process.env.SESSION_NAME || 'sid',
       secret: process.env.SESSION_SECRET || 'dev_session_secret',
       resave: false,
-      saveUninitialized: false,
+      saveUninitialized: true,
       cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -74,35 +80,45 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Socket.IO with Redis Adapter
-  io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:3000',
-      credentials: true,
-    },
-  });
-
-  const pubClient = redisClient;
-  subClient = redisClient.duplicate();
-  await subClient.connect();
-
-  io.adapter(createAdapter(pubClient, subClient));
+  // Socket.IO initialized via centralized module
+  io = initializeSocketIO(httpServer);
 } else {
-  console.log('Test mode: skipping external services, sessions, and Socket.IO initialization');
+  logger.info('Test mode: skipping external services, sessions, and Socket.IO initialization');
 }
 
 // Middleware
 app.use(helmet());
+// Request logging with Pino
+app.use(pinoHttp({
+  logger,
+  serializers: {
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      host: req.headers.host,
+      remoteAddress: req.remoteAddress,
+      remotePort: req.remotePort,
+    }),
+    res: (res) => ({
+      statusCode: res.statusCode,
+    }),
+  },
+  // Prevent logging of health checks to keep logs clean
+  // autoLogging: {
+  //   ignore: (req) => req.url === '/health',
+  // },
+}));
+
 // Content Security Policy: restrict resources to trusted origins
 app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", process.env.CLIENT_URL || 'http://localhost:3000'],
+      scriptSrc: ["'self'", "'unsafe-inline'", process.env.CLIENT_URL || 'http://localhost:5173'],
       connectSrc: [
         "'self'",
-        process.env.CLIENT_URL || 'http://localhost:3000',
+        process.env.CLIENT_URL || 'http://localhost:5173',
         process.env.API_URL || 'http://localhost:5000',
       ],
       imgSrc: ["'self'", 'data:', (process.env.CLOUDINARY_CLOUD_NAME ? `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}` : "'self'")],
@@ -111,6 +127,13 @@ app.use(
     },
   })
 );
+
+// Regular JSON body parser for all other routes
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ limit: '10kb', extended: true }));
+app.use(cookieParser());
+app.use(apiLimiter);
+
 // Sanitize incoming string fields to mitigate XSS (replaces deprecated xss-clean)
 const sanitizeObject = (obj) => {
   if (!obj || typeof obj !== 'object') return obj;
@@ -134,7 +157,7 @@ app.use((req, res, next) => {
     if (req.body && typeof req.body === 'object') sanitizeObject(req.body);
   } catch (err) {
     // If sanitization fails, continue — global error handler will catch if needed
-    console.error('Sanitization error:', err);
+    logger.error('Sanitization error:', err);
   }
   next();
 });
@@ -144,12 +167,22 @@ app.use(hpp());
 // Skip express-mongo-sanitize in test mode because it mutates req.query/req.params in ways
 // that may be incompatible with some test request objects (supertest/express versions)
 if (process.env.NODE_ENV !== 'test') {
-  app.use(mongoSanitize());
+  try {
+    app.use((req, res, next) => {
+      const body = mongoSanitize.sanitize(req.body);
+      const params = mongoSanitize.sanitize(req.params);
+      req.body = body;
+      req.params = params;
+      next();
+    });
+  } catch (error) {
+    logger.error('MongoSanitize error:', error);
+  }
 } else {
-  console.log('Test mode: skipping express-mongo-sanitize middleware');
+  logger.info('Test mode: skipping express-mongo-sanitize middleware');
 }
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true,
 }));
 
@@ -161,21 +194,29 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }),
     import('./src/controllers/paymentController.js')
       .then(module => module.handleWebhook(req, res))
       .catch(err => {
-        console.error('Webhook handler error:', err);
+        logger.error('Webhook handler error:', err);
         res.status(500).send('Internal server error');
       });
   }
 );
 
-// Regular JSON body parser for all other routes
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ limit: '10kb', extended: true }));
-app.use(cookieParser());
-app.use(apiLimiter);
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'API Service is running' });
+  try {
+    const response = {
+      status: 'success',
+      message: 'API Service is running',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+    };
+    logger.info({ response }, 'Health check response');
+    res.json(response);
+  } catch (error) {
+    logger.error('Health check error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // API Routes (placeholder)
@@ -193,17 +234,24 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 // Payment routes (excluding webhook which is handled above)
 app.use('/api/payments', paymentRoutes);
+// AI routes
+app.use('/api/ai', aiRoutes);
+// Admin routes
+// Admin routes
+app.use('/api/admin', adminRoutes);
+// User routes
+app.use('/api/users', userRoutes);
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
+// Settings routes
+app.use('/api/settings', settingsRoutes);
+// Review routes
+app.use('/api/reviews', reviewRoutes);
+// Health check routes
+app.use('/api/health', healthRoutes);
 
 // Socket.IO connection handling (only if initialized)
-if (io) {
-  io.on('connection', (socket) => {
-    console.log(`✓ Client connected: ${socket.id}`);
 
-    socket.on('disconnect', () => {
-      console.log(`✗ Client disconnected: ${socket.id}`);
-    });
-  });
-}
 
 // Error handling
 app.use(notFoundHandler);
@@ -213,21 +261,44 @@ app.use(globalErrorHandler);
 if (process.env.NODE_ENV !== 'test') {
   const PORT = process.env.PORT || 5000;
   httpServer.listen(PORT, () => {
-    console.log(`✓ API Server running on port ${PORT}`);
+    logger.info(`✓ API Server running on port ${PORT}`);
+  });
+
+  // Schedule Stock Release Job (Run every minute)
+  // Releases stock for pending card orders older than 5 minutes
+  // Solves the "lost sale" problem by making stock available to other users quickly
+  import('./src/services/inventoryService.js').then(({ releaseExpiredReservations }) => {
+    logger.info('✓ Stock Release Job scheduled (5 min timeout, checks every 60s)');
+    setInterval(async () => {
+      try {
+        const result = await releaseExpiredReservations(5); // 5 minutes timeout
+        if (result.releasedCount > 0) {
+          logger.info(`♻ Released stock for ${result.releasedCount} expired pending orders`);
+        }
+      } catch (error) {
+        logger.error('Stock Release Job failed:', error);
+      }
+    }, 60 * 1000); // Check every minute
+  });
+
+  // Schedule Courier Sync Job (Run every 5 minutes)
+  // Automatically updates status/payment for shipped orders based on courier data
+  import('./src/services/cronService.js').then(({ startCourierSyncJob }) => {
+    startCourierSyncJob();
   });
 }
 
 // Graceful shutdown
 const gracefulShutdown = async () => {
-  console.log('\n✓ Shutting down gracefully...');
+  logger.info('\n✓ Shutting down gracefully...');
   httpServer.close(async () => {
     try {
       if (redisClient) await redisClient.quit();
       if (subClient) await subClient.quit();
-      console.log('✓ All connections closed');
+      logger.info('✓ All connections closed');
       process.exit(0);
     } catch (error) {
-      console.error('Error during shutdown:', error);
+      logger.error('Error during shutdown:', error);
       process.exit(1);
     }
   });

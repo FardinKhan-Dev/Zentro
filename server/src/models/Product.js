@@ -17,7 +17,10 @@ const productSchema = new mongoose.Schema(
     reservedStock: { type: Number, default: 0, min: 0 }, // Stock reserved during checkout
     lowStockThreshold: { type: Number, default: 10 }, // Alert threshold
     featured: { type: Boolean, default: false },
+    tags: [{ type: String, trim: true }], // Product tags for search/filtering
     metadata: { type: Object, default: {} },
+    averageRating: { type: Number, default: 0 },
+    numReviews: { type: Number, default: 0 },
   },
   {
     timestamps: true,

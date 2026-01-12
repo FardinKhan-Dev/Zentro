@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import crypto from 'crypto';
 import { AppError, catchAsync } from '../utils/errorHandler.js';
 import {
   signAccessToken,
@@ -14,7 +15,15 @@ import {
   addPasswordResetEmailJob,
   addWelcomeEmailJob,
 } from '../services/queueService.js';
+import { getRedisClient } from '../config/redis.js';
 import { customResponse } from '../utils/response.js';
+import { triggerN8nWebhook } from '../utils/n8n.js';
+import { sendAdminNotification } from '../services/notificationService.js';
+import PlatformSettings from '../models/PlatformSettings.js';
+import { sendEmail } from '../services/emailService.js';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './.env' })
 
 export const register = catchAsync(async (req, res, next) => {
   const { name, email, password, confirmPassword } = req.body;
@@ -36,16 +45,21 @@ export const register = catchAsync(async (req, res, next) => {
   const verificationToken = user.generateEmailVerificationToken();
   await user.save({ validateBeforeSave: false });
 
+  //SIGNUP TRACKING 
+  const redis = getRedisClient();
+  const today = new Date().toISOString().split('T')[0];
+  if (redis) redis.hIncrBy(`analytics:users:signups:${today}`, 'count', 1).catch();
+
   // In test mode auto-verify the user to simplify login tests
-  if (process.env.NODE_ENV === 'test') {
-    user.isVerified = true;
-    user.emailVerificationToken = null;
-    user.emailVerificationTokenExpire = null;
-    await user.save({ validateBeforeSave: false });
-  }
+  // if (process.env.NODE_ENV === 'test') {
+  //   user.isVerified = true;
+  //   user.emailVerificationToken = null;
+  //   user.emailVerificationTokenExpire = null;
+  //   await user.save({ validateBeforeSave: false });
+  // }
 
   // Queue verification email (async - doesn't block registration)
-  const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
+  const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
   try {
     await addVerificationEmailJob(email, verificationUrl);
   } catch (err) {
@@ -54,6 +68,24 @@ export const register = catchAsync(async (req, res, next) => {
   }
 
   // Don't set cookies yet - user must verify email first
+
+  // TRIGGER N8N WEBHOOK
+  triggerN8nWebhook('user-registered', {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    date: new Date().toISOString()
+  });
+
+  // Send Admin Notification (Async)
+  sendAdminNotification(
+    'newSignup',
+    'New User Registered 👤',
+    `User ${user.name} (${user.email}) has joined.`,
+    'info',
+    user._id
+  ).catch(err => console.error('Admin notif error:', err));
+
   return customResponse(res, {
     status: 201,
     success: true,
@@ -63,7 +95,7 @@ export const register = catchAsync(async (req, res, next) => {
 });
 
 export const verifyEmail = catchAsync(async (req, res, next) => {
-  const { token } = req.body;
+  const { token } = req.params;
 
   if (!token) throw new AppError('Verification token required', 400);
 
@@ -73,12 +105,18 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
     emailVerificationTokenExpire: { $gt: Date.now() },
   });
 
-  if (!user) throw new AppError('Invalid or expired verification token', 400);
+  if (!user) {
+    throw new AppError('Token is invalid or has expired.', 400);
+  }
 
-  user.isVerified = true;
-  user.emailVerificationToken = null;
-  user.emailVerificationTokenExpire = null;
-  await user.save();
+  user.isVerified = true
+  user.emailVerificationToken = null
+  user.emailVerificationTokenExpire = null
+  await user.save({ validateBeforeSave: false })
+
+  const redis = getRedisClient();
+  const today = new Date().toISOString().split('T')[0];
+  if (redis) redis.hIncrBy(`analytics:users:signups:${today}`, 'count', 1).catch();
 
   // Queue welcome email (async)
   try {
@@ -98,6 +136,8 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
   });
 });
 
+
+
 export const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -114,11 +154,90 @@ export const login = catchAsync(async (req, res, next) => {
     throw new AppError('Please verify your email before logging in', 403);
   }
 
-  sendTokensWithCookies(res, user);
+  // Check Global 2FA Settings for Admins
+  if (user.role === 'admin') {
+    const settings = await PlatformSettings.getSettings();
+    if (settings.security?.twoFactorAuth) {
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
+
+      user.loginOTP = hashedOTP;
+      user.loginOTPExpire = Date.now() + 10 * 60 * 1000; // 10 mins
+      await user.save({ validateBeforeSave: false });
+
+      // Send OTP Email
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: 'Your Zentro Admin Login Code',
+          message: `Your login verification code is: ${otp}\nIt expires in 10 minutes.`,
+        });
+      } catch (err) {
+        user.loginOTP = undefined;
+        user.loginOTPExpire = undefined;
+        await user.save({ validateBeforeSave: false });
+        throw new AppError('There was an error sending the email. Try again later!', 500);
+      }
+
+      return customResponse(res, {
+        status: 200,
+        success: true,
+        message: '2FA Code sent to email',
+        data: { require2fa: true, email: user.email }
+      });
+    }
+  }
+
+  const redis = getRedisClient();
+  const today = new Date().toISOString().split('T')[0];
+  if (redis) redis.hIncrBy(`analytics:users:logins:${today}`, 'count', 1).catch();
+
+  const { rememberMe } = req.body;
+  sendTokensWithCookies(res, user, rememberMe);
   return customResponse(res, {
     status: 200,
     success: true,
     data: { id: user._id, email: user.email, name: user.name, role: user.role },
+  });
+});
+
+export const verifyLoginOTP = catchAsync(async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    throw new AppError('Email and OTP are required', 400);
+  }
+
+  const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
+
+  const user = await User.findOne({
+    email,
+    loginOTP: hashedOTP,
+    loginOTPExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    throw new AppError('Invalid or expired OTP', 400);
+  }
+
+  // Clear OTP
+  user.loginOTP = undefined;
+  user.loginOTPExpire = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  // Update Analytics
+  const redis = getRedisClient();
+  const today = new Date().toISOString().split('T')[0];
+  if (redis) redis.hIncrBy(`analytics:users:logins:${today}`, 'count', 1).catch();
+
+  // Issue Tokens
+  sendTokensWithCookies(res, user);
+  return customResponse(res, {
+    status: 200,
+    success: true,
+    message: 'Login successful',
+    data: { id: user._id, email: user.email, name: user.name, role: user.role }
   });
 });
 
@@ -296,6 +415,7 @@ export default {
   register,
   verifyEmail,
   login,
+  verifyLoginOTP,
   logout,
   refreshAccessToken,
   requestPasswordReset,

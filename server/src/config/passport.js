@@ -1,6 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../models/User.js';
+import dotenv from 'dotenv';
+dotenv.config({path: './.env'});
 
 // Initialize passport Google strategy only if credentials are provided
 if (process.env.NODE_ENV !== 'test' && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {

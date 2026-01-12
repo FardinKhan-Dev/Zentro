@@ -4,6 +4,7 @@ import {
     createSession,
     handleWebhook,
     refundOrder,
+    verifyPayment,
 } from '../controllers/paymentController.js';
 import { protect, restrictTo } from '../middleware/authMiddleware.js';
 
@@ -22,6 +23,13 @@ router.post('/create-intent', protect, createIntent);
  * @access  Private
  */
 router.post('/checkout-session', protect, createSession);
+
+/**
+ * @route   POST /api/payments/verify
+ * @desc    Verify payment status explicitly
+ * @access  Private
+ */
+router.post('/verify', protect, verifyPayment);
 
 /**
  * @route   POST /api/payments/webhook

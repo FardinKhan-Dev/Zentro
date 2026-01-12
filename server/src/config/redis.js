@@ -1,30 +1,34 @@
 import { createClient } from 'redis';
+import dotenv from 'dotenv';
+dotenv.config({path: './.env'});
+
 
 let redisClient = null;
 
 export const initializeRedis = async () => {
-  try {
-    redisClient = createClient({
-      url: process.env.REDIS_URL || process.env.REDIS_DEV_URL || 'redis://localhost:6379',
-      socket: {
-        reconnectStrategy: (retries) => {
-          if (retries > 10) {
-            console.error('Redis reconnection failed after 10 attempts');
-            return new Error('Redis max retries exceeded');
-          }
-          return retries * 100;
-        },
+  if (redisClient) return redisClient;
+
+  redisClient = createClient({
+    url: process.env.REDIS_URL || 'redis://localhost:6379',
+    socket: {
+      reconnectStrategy: (retries) => {
+        if (retries > 10) return new Error('Redis reconnect failed');
+        return Math.min(retries * 100, 2000);
       },
-    });
+    },
+  });
 
-    redisClient.on('error', (err) => console.error('Redis Client Error:', err));
-    redisClient.on('connect', () => console.log('✓ Redis connected'));
-    redisClient.on('ready', () => console.log('✓ Redis ready'));
+  redisClient.on('error', (err) => console.error('Redis Error:', err));
+  redisClient.on('connect', () => console.log('Redis connecting...'));
+  redisClient.on('ready', () => console.log('Redis ready'));
+  redisClient.on('end', () => console.log('Redis disconnected'));
 
+  try {
     await redisClient.connect();
+    console.log('✓ Redis connected successfully');
     return redisClient;
-  } catch (error) {
-    console.error(`✗ Redis connection error: ${error.message}`);
+  } catch (err) {
+    console.error('✗ Failed to connect to Redis:', err);
     process.exit(1);
   }
 };
@@ -38,9 +42,8 @@ export const getRedisClient = () => {
 
 export const disconnectRedis = async () => {
   if (redisClient) {
-    await redisClient.disconnect();
-    console.log('✓ Redis disconnected');
+    await redisClient.quit();
+    redisClient = null;
+    console.log('Redis disconnected');
   }
 };
-
-export default redisClient;

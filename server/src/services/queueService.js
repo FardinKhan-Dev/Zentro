@@ -1,5 +1,11 @@
 import { getEmailQueue } from '../jobs/definitions/emailQueue.js';
 import { getAnalyticsQueue } from '../jobs/definitions/analyticsQueue.js';
+export {
+    addDescriptionGenerationJob,
+    addTagsGenerationJob,
+    addFAQGenerationJob,
+    addBulkEnhancementJob,
+} from '../jobs/definitions/aiQueue.js';
 
 /**
  * Queue Service - Helper functions to add jobs to queues
@@ -104,6 +110,33 @@ export const addAnalyticsJob = async (type, data) => {
     }
 };
 
+// ==================== SMS JOBS ====================
+
+import { getSMSQueue } from '../jobs/definitions/smsQueue.js';
+
+/**
+ * Add an SMS job to the queue
+ * @param {string} phoneNumber - Recipient phone number
+ * @param {string} message - Message content
+ * @returns {Promise<Job>} The created job
+ */
+export const addSMSJob = async (phoneNumber, message) => {
+    try {
+        const smsQueue = getSMSQueue();
+        const job = await smsQueue.add('sms', {
+            phoneNumber,
+            message,
+            timestamp: new Date().toISOString(),
+        });
+
+        console.log(`✓ SMS job added for ${phoneNumber} (Job ID: ${job.id})`);
+        return job;
+    } catch (error) {
+        console.error(`✗ Failed to add SMS job:`, error.message);
+        throw error; // Or return null if we don't want to block
+    }
+};
+
 // ==================== QUEUE STATUS ====================
 
 /**
@@ -135,5 +168,6 @@ export default {
     addPasswordResetEmailJob,
     addOrderConfirmationEmailJob,
     addAnalyticsJob,
+    addSMSJob,
     getQueueStats,
 };

@@ -2,6 +2,9 @@ import { Server as SocketIOServer } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { getRedisClient } from '../config/redis.js';
 import registerInventoryHandlers from './events/inventoryHandlers.js';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './.env' })
 
 let io;
 
@@ -14,7 +17,7 @@ export const initializeSocketIO = (httpServer) => {
 
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:3000',
+      origin: process.env.CLIENT_URL || 'http://localhost:5173',
       credentials: true,
     },
   });
@@ -33,6 +36,14 @@ export const initializeSocketIO = (httpServer) => {
 
   io.on('connection', (socket) => {
     console.log(`✓ Client connected: ${socket.id}`);
+
+    // Join user-specific room for private notifications
+    socket.on('join:user', (userId) => {
+      if (userId) {
+        socket.join(`user:${userId}`);
+        console.log(`👤 Socket ${socket.id} joined room: user:${userId}`);
+      }
+    });
 
     // Register event handlers
     registerInventoryHandlers(io, socket);
