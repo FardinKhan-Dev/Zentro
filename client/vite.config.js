@@ -18,7 +18,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
+    minify: 'esbuild', // Using esbuild (built-in, faster than terser)
   },
   define: {
     __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
