@@ -30,14 +30,6 @@ import { Toaster, toast } from 'react-hot-toast';
 const App = () => {
   const { isLoading } = useGetMeQuery();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
   /* 
     Handle Google Auth Callback
     The backend redirects to /?auth=success or /?auth=failed
@@ -54,6 +46,14 @@ const App = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider>
