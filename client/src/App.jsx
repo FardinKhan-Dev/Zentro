@@ -1,11 +1,10 @@
 import React from 'react';
-import { Routes, Route, Outlet } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/layout';
 import ScrollToTop from './components/common/ScrollToTop';
 import RouteScrollToTop from './components/common/RouteScrollToTop';
-import Register from './components/auth/Register';
-import Login from './components/auth/Login';
+
 import VerifyEmail from './components/auth/VerifyEmail';
 import RequestReset from './components/auth/RequestReset';
 import ResetPassword from './components/auth/ResetPassword';
