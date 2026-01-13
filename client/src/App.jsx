@@ -28,7 +28,8 @@ import { useGetMeQuery } from './features/auth/authApi';
 import { Toaster, toast } from 'react-hot-toast';
 
 const App = () => {
-  const { isLoading } = useGetMeQuery();
+  // Non-blocking auth check - query runs in background
+  useGetMeQuery();
 
   /* 
     Handle Google Auth Callback
@@ -47,13 +48,7 @@ const App = () => {
     }
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
+
 
   return (
     <ThemeProvider>
