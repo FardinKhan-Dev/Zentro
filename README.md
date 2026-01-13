@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Zentro Banner](https://via.placeholder.com/1200x400/4F46E5/ffffff?text=Zentro+E-Commerce+Platform)
+![Zentro Banner](./docs/screenshots/zentro-banner.png)
 
 **A production-ready, full-stack e-commerce platform built with modern technologies**
 
@@ -11,6 +11,22 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Redis](https://img.shields.io/badge/Redis-7.0-DC382D?logo=redis&logoColor=white)](https://redis.io/)
+
+---
+
+### 🌐 Live Demo
+
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-4F46E5?style=for-the-badge)](https://zentro-cyan.vercel.app)
+[![API Status](https://img.shields.io/badge/API-Online-success?style=for-the-badge)](https://zentro-e8ga.onrender.com/api/health)
+
+**🔗 Quick Links:**
+- **Frontend**: [zentro-cyan.vercel.app](https://zentro-cyan.vercel.app)
+- **Backend API**: [zentro-e8ga.onrender.com](https://zentro-e8ga.onrender.com)
+- **API Health**: [zentro-e8ga.onrender.com/api/health](https://zentro-e8ga.onrender.com/api/health)
+
+**Note:** Feel free to use the your own credentials for testing purposes.
+
+---
 
 [Features](#-features) • [Tech Stack](#-tech-stack) • [Screenshots](#-screenshots) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [API Docs](#-api-documentation)
 
@@ -42,9 +58,58 @@
 ![Checkout](./docs/screenshots/checkout.png)
 *Secure Stripe payment integration*
 
+### Order Confirmation
+![Order Confirmation](./docs/screenshots/order-confirmation.png)
+*Order confirmation page with order details*
+
+### Order History
+![Order History](./docs/screenshots/order-history.png)
+*View and manage past orders*
+
 ### Admin Dashboard
 ![Admin Dashboard](./docs/screenshots/admin-dashboard.png)
 *Comprehensive admin panel with analytics*
+
+---
+
+### Mobile Views
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/mobile-home.png" alt="Mobile Home" width="250"/>
+      <br />
+      <strong>Homepage</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/mobile-products.png" alt="Mobile Products" width="250"/>
+      <br />
+      <strong>Products</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/mobile-product-detail.png" alt="Mobile Product Detail" width="250"/>
+      <br />
+      <strong>Product Detail</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/mobile-cart.png" alt="Mobile Cart" width="250"/>
+      <br />
+      <strong>Shopping Cart</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/mobile-checkout.png" alt="Mobile Checkout" width="250"/>
+      <br />
+      <strong>Checkout</strong>
+    </td>
+    <td align="center" width="33%">
+      <img src="./docs/screenshots/mobile-profile.png" alt="Mobile Profile" width="250"/>
+      <br />
+      <strong>User Profile</strong>
+    </td>
+  </tr>
+</table>
 
 </div>
 
@@ -488,7 +553,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Issues**: [GitHub Issues](https://github.com/FardinKhan-Dev/Zentro/issues)
 
 ### 💬 Get Help
-- 📝 Check the [documentation](./docs)
 - 🐛 Report bugs via GitHub Issues
 - 💡 Request features via GitHub Issues
 - ⭐ Star the repo if you find it useful!
