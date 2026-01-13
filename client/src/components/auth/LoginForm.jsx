@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginFormSchema } from '../../validations/authValidation';
+import { cartApi } from '../../features/cart/cartApi';
 
 
 
@@ -54,6 +55,9 @@ const LoginForm = ({ isDrawer = false }) => {
 
             console.log(response);
 
+            // Refetch cart to sync guest cart items with logged-in user cart
+            dispatch(cartApi.util.invalidateTags(['Cart']));
+
             if (isDrawer) {
                 dispatch(closeAuthDrawer());
                 if (response.data.role === 'admin') {
@@ -75,6 +79,9 @@ const LoginForm = ({ isDrawer = false }) => {
         e.preventDefault();
         try {
             const response = await verifyOTP({ email: emailFor2FA, otp }).unwrap();
+
+            // Refetch cart to sync guest cart items with logged-in user cart
+            dispatch(cartApi.util.invalidateTags(['Cart']));
 
             if (isDrawer) {
                 dispatch(closeAuthDrawer());
