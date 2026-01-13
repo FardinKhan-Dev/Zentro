@@ -6,15 +6,7 @@ import Button from '../common/Button';
 
 const FeaturedProducts = () => {
   const { data, isLoading } = useGetProductsQuery({ limit: 6 });
-  // const products = data?.data?.products || [];
-  const products = [
-    { id: 1, name: 'Dracaena', price: 80.00, rating: 4, image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09', highlight: false },
-    { id: 2, name: 'Dracaena', price: 80.00, rating: 5, image: 'https://atlas-content-cdn.pixelsquid.com/stock-images/potted-plant-flower-pot-mdm41mF-600.jpg', highlight: true },
-    { id: 3, name: 'Dracaena', price: 80.00, rating: 4, image: 'https://atlas-content-cdn.pixelsquid.com/stock-images/potted-plant-flower-pot-y1Md6P7-600.jpg', highlight: false },
-    { id: 4, name: 'Dracaena', price: 80.00, rating: 4, image: 'https://atlas-content-cdn.pixelsquid.com/stock-images/potted-plant-flower-pot-K60zrNB-600.jpg', highlight: false },
-    { id: 5, name: 'Dracaena', price: 80.00, rating: 4, image: 'https://png.pngtree.com/png-vector/20240905/ourmid/pngtree-unreal-engine-5-style-game-asset-a-unique-plant-pot-white-png-image_13754661.png', highlight: false },
-    { id: 6, name: 'Dracaena', price: 80.00, rating: 4, image: 'https://png.pngtree.com/png-vector/20240309/ourmid/pngtree-home-plant-in-pot-cutout-png-image_11899655.png', highlight: false },
-  ];
+  const products = data?.data?.products || [];
 
   if (isLoading) {
     return (
