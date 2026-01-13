@@ -201,7 +201,7 @@ const PaymentPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     {/* Payment Form */}
-                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 relative z-0 order-1 md:order-1" style={{ isolation: 'isolate' }}>
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 order-1 md:order-1">
                         <div className="absolute top-0 left-[6px] right-[6px] h-1 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-[calc(1rem-1px)]"></div>
                         <h2 className="text-lg font-semibold mb-6 flex items-center gap-2 dark:text-white">
                             <FiCreditCard className="text-indigo-600" />
