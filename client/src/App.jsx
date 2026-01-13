@@ -21,6 +21,7 @@ import ProfilePage from './pages/ProfilePage';
 import Home from './pages/Home';
 import { AdminLayout, Dashboard, ProductManager, OrderManager, UserManager, Analytics, AdminSettings, AdminProfile } from './components/admin';
 import AuthDrawer from './components/auth/AuthDrawer';
+import AuthRedirect from './components/auth/AuthRedirect';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import PublicRoute from './components/auth/PublicRoute';
 import { useGetMeQuery } from './features/auth/authApi';
@@ -60,17 +61,9 @@ const App = () => {
         <Route element={<Layout><Outlet /></Layout>}>
           <Route path="/" element={<Home />} />
 
-          {/* Auth Routes */}
-          <Route path="/register" element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          } />
-          <Route path="/login" element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          } />
+          {/* Auth Routes - Open AuthDrawer */}
+          <Route path="/register" element={<AuthRedirect view="register" />} />
+          <Route path="/login" element={<AuthRedirect view="login" />} />
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path="/request-reset" element={
             <PublicRoute>
