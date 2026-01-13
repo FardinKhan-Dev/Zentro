@@ -13,6 +13,15 @@ export const authApi = baseApi.injectEndpoints({
     }),
     logout: builder.mutation({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // Reset entire RTK Query cache on logout
+          dispatch(baseApi.util.resetApiState());
+        } catch (err) {
+          // Logout failed - don't reset cache
+        }
+      },
     }),
     refresh: builder.query({
       query: () => ({ url: '/auth/refresh', method: 'GET' }),
