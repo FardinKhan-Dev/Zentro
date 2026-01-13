@@ -46,7 +46,7 @@ const AuthDrawer = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => dispatch(closeAuthDrawer())}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-999"
                     />
 
                     {/* Drawer */}
@@ -55,7 +55,7 @@ const AuthDrawer = () => {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white dark:bg-[#121212] shadow-2xl z-50 overflow-y-auto"
+                        className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white dark:bg-[#121212] shadow-2xl z-999 overflow-y-auto"
                     >
                         <div className="p-6 min-h-full relative">
                             <button
