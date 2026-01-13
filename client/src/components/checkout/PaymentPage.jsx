@@ -67,8 +67,8 @@ const CheckoutForm = ({ orderId, amount }) => {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <PaymentElement />
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 min-h-[300px]">
+                <PaymentElement options={{ layout: 'tabs' }} />
             </div>
 
             {message && (
