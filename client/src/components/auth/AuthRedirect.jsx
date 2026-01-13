@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { openAuthDrawer, setAuthView } from '../../features/auth/authSlice';
+import { openAuthDrawer, switchAuthView } from '../../features/auth/authSlice';
 
 const AuthRedirect = ({ view }) => {
     const navigate = useNavigate();
@@ -9,7 +9,7 @@ const AuthRedirect = ({ view }) => {
 
     useEffect(() => {
         // Open drawer with the specified view
-        dispatch(setAuthView(view));
+        dispatch(switchAuthView(view));
         dispatch(openAuthDrawer());
 
         // Navigate to home (drawer stays open)
