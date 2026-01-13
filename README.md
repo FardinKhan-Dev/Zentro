@@ -1,289 +1,504 @@
-# Zentro - E-Commerce Platform
+# 🛍️ Zentro - Modern E-Commerce Platform
 
-A modern, scalable e-commerce platform built with React (Vite), Node.js, MongoDB, Redis, and Docker. Designed to handle high-concurrency scenarios with real-time updates and async job processing.
+<div align="center">
 
-## Architecture Overview
+![Zentro Banner](https://via.placeholder.com/1200x400/4F46E5/ffffff?text=Zentro+E-Commerce+Platform)
 
-### The Three-Service Architecture
+**A production-ready, full-stack e-commerce platform built with modern technologies**
 
-1. **API Service** (`server.js`) - Handles HTTP requests and WebSocket connections
-2. **Worker Service** (`worker.js`) - Processes background jobs (emails, analytics)
-3. **Client Service** - Serves React frontend with Nginx
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Node](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-6.0-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-7.0-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 
-### Technology Stack
+[Features](#-features) • [Tech Stack](#-tech-stack) • [Screenshots](#-screenshots) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [API Docs](#-api-documentation)
 
-**Frontend:**
-- React + Vite
-- Redux Toolkit with RTK Query
-- Socket.IO client for real-time updates
-- Service Workers for push notifications
+</div>
 
-**Backend:**
-- Node.js + Express
-- MongoDB with Mongoose
-- Redis (Caching, Pub/Sub, Queues)
-- BullMQ for job queuing
-- Socket.IO for real-time communication
-- Stripe for payment processing
-- Cloudinary for image uploads
-- OpenAI for product descriptions
+---
 
-**Infrastructure:**
-- Docker & Docker Compose
-- Nginx reverse proxy
-- Redis Adapter for Socket.IO scaling
+## 📸 Screenshots
 
-## Project Structure
+<div align="center">
+
+### Homepage
+![Homepage](./docs/screenshots/homepage.png)
+*Modern landing page with featured products*
+
+### Product Catalog
+![Products](./docs/screenshots/products.png)
+*Advanced filtering and search capabilities*
+
+### Product Details
+![Product Detail](./docs/screenshots/product-detail.png)
+*Detailed product view with reviews and related items*
+
+### Shopping Cart
+![Cart](./docs/screenshots/cart.png)
+*Real-time cart with inventory status*
+
+### Checkout Process
+![Checkout](./docs/screenshots/checkout.png)
+*Secure Stripe payment integration*
+
+### Admin Dashboard
+![Admin Dashboard](./docs/screenshots/admin-dashboard.png)
+*Comprehensive admin panel with analytics*
+
+</div>
+
+---
+
+## ✨ Features
+
+### 🔐 **Authentication & Authorization**
+- JWT with HttpOnly cookies + Refresh tokens
+- Google OAuth 2.0 integration
+- Two-Factor Authentication (2FA) via email OTP
+- Email verification & password reset
+- Redis-backed session management
+
+### 🛒 **Shopping Experience**
+- Advanced product filtering & search
+- Redis-cached product listings for performance
+- Real-time inventory management
+- Shopping cart with persistence
+- AI-powered product descriptions (Google Gemini)
+- Image upload with Cloudinary
+
+### 💳 **Payments & Orders**
+- Stripe payment integration
+- Secure checkout flow
+- Order tracking & history
+- Email notifications via BullMQ
+- Concurrency control for inventory
+
+### ⚡ **Real-Time Features**
+- Socket.IO for live updates
+- Redis pub/sub for multi-instance scaling
+- Real-time order status notifications
+- Cross-tab cart synchronization
+
+### 🤖 **Automation & Background Jobs**
+- **n8n workflow integration** for automation
+- BullMQ job queues (email, analytics, AI tasks)
+- Optimized worker concurrency for free hosting
+- PM2 process management in production
+
+### 📊 **Admin Dashboard**
+- Product management (CRUD operations)
+- Order management & fulfillment
+- User management
+- Analytics & reporting
+- Settings configuration
+
+### 🎨 **UI/UX**
+- Responsive design with Tailwind CSS v4
+- Dark mode support
+- Smooth animations with Framer Motion
+- Toast notifications
+- Loading states & error handling
+
+---
+
+## 🚀 Tech Stack
+
+### **Frontend**
+- **React 19** - UI library
+- **Vite** - Build tool & dev server
+- **Redux Toolkit** - State management
+- **RTK Query** - Data fetching & caching
+- **React Router** - Client-side routing
+- **React Hook Form** - Form management
+- **Zod** - Schema validation (shared with backend)
+- **Tailwind CSS v4** - Utility-first styling
+- **Framer Motion** - Animations
+- **Socket.IO Client** - Real-time communication
+- **Stripe.js** - Payment processing
+
+### **Backend**
+- **Node.js 18+** with Express.js
+- **MongoDB** with Mongoose ODM
+- **Redis** - Caching, sessions, pub/sub, queues
+- **BullMQ** - Job queue system
+- **Socket.IO** - WebSocket server
+- **JWT** - Authentication
+- **Passport.js** - OAuth strategies
+- **Zod** - Request validation
+- **Stripe** - Payment gateway
+- **Cloudinary** - Image storage
+- **Google Gemini AI** - AI-powered features
+- **Nodemailer** - Email service
+- **Pino** - Structured logging
+
+### **DevOps & Infrastructure**
+- **Docker** & Docker Compose
+- **PM2** - Process manager
+- **Nginx** - Reverse proxy
+- **MongoDB Atlas** - Cloud database
+- **Upstash Redis** - Serverless Redis
+- **Vercel** - Frontend hosting
+- **Render.com** - Backend hosting
+- **GitHub Actions** - CI/CD
+
+---
+
+## 📁 Project Structure
 
 ```
-Zentro/
-├── client/                    # React frontend
+Zentro-Ecom App/
+├── client/                     # React frontend
 │   ├── src/
-│   │   ├── app/              # Redux store & RTK Query setup
-│   │   ├── features/         # Feature-based slices & components
-│   │   ├── components/       # Shared UI components
-│   │   ├── hooks/            # Custom hooks
-│   │   ├── pages/            # Page components
-│   │   └── utils/            # Utilities & helpers
-│   ├── public/               # Static assets & Service Worker
-│   ├── Dockerfile            # Multi-stage build
-│   └── nginx.conf            # Production config
+│   │   ├── app/               # Redux store & RTK Query
+│   │   ├── features/          # Feature slices (auth, products, cart, orders)
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/             # Page components
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── validations/       # Zod schemas (mirrored from backend)
+│   │   └── utils/             # Helper functions
+│   ├── public/                # Static assets
+│   ├── Dockerfile             # Production build
+│   └── vite.config.js         # Vite configuration
 │
-└── server/                    # Node.js backend
+└── server/                     # Node.js backend
     ├── src/
-    │   ├── config/           # DB, Redis, Cloudinary, Stripe
-    │   ├── models/           # Mongoose schemas
-    │   ├── controllers/      # Request handlers
-    │   ├── middleware/       # Express middleware
-    │   ├── routes/           # API routes
-    │   ├── services/         # Business logic
-    │   ├── jobs/             # BullMQ workers & queues
-    │   ├── websocket/        # Socket.IO setup & events
-    │   └── utils/            # Helpers & error handling
-    ├── server.js             # Express + Socket.IO entry
-    └── worker.js             # BullMQ worker entry
+    │   ├── config/            # Database, Redis, Cloudinary, Stripe, Passport
+    │   ├── models/            # Mongoose schemas
+    │   ├── controllers/       # Request handlers
+    │   ├── middleware/        # Express middleware
+    │   ├── routes/            # API route definitions
+    │   ├── services/          # Business logic (email, AI, analytics)
+    │   ├── jobs/              # BullMQ queues & workers
+    │   ├── validations/       # Zod validation schemas
+    │   ├── websocket/         # Socket.IO events
+    │   └── utils/             # Helpers & utilities
+    ├── server.js              # Express app entry point
+    ├── worker.js              # Background worker entry
+    ├── ecosystem.config.js    # PM2 configuration
+    └── Dockerfile             # Production build
 ```
 
-## Quick Start
+---
 
-### Prerequisites
-- Node.js 18+
-- Docker & Docker Compose
+## 🏃 Quick Start
+
+### **Prerequisites**
+- Node.js 18+ and npm
 - MongoDB (local or Atlas)
-- Redis (local or elasticache)
+- Redis (local or Upstash)
+- Docker & Docker Compose (optional)
 
-### Development Setup
-
-1. **Clone and install dependencies:**
-   ```bash
-   # Install root dependencies if any
-   cd server && npm install
-   cd ../client && npm install
-   ```
-
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your credentials
-   ```
-
-3. **Run with Docker Compose:**
-   ```bash
-   docker-compose up --build
-   ```
-
-4. **Access the application:**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:5000
-   - Redis Commander (optional): http://localhost:8081
-
-### Key Environment Variables
-
-- `MONGODB_URI` - MongoDB connection string
-- `REDIS_URL` - Redis connection URL
-- `JWT_SECRET` - JWT signing key
-- `STRIPE_SECRET_KEY` - Stripe secret key
-- `CLOUDINARY_*` - Cloudinary credentials
-- `GOOGLE_CLIENT_ID/SECRET` - Google OAuth
-- `OPENAI_API_KEY` - OpenAI API key
-
-## Development Workflow
-
-### API Development
-
+### **1. Clone the Repository**
 ```bash
-# Terminal 1: API Service
+git clone https://github.com/FardinKhan-Dev/Zentro.git
+cd Zentro-Ecom\ App
+```
+
+### **2. Install Dependencies**
+```bash
+# Install server dependencies
+cd server
+npm install
+
+# Install client dependencies
+cd ../client
+npm install
+```
+
+### **3. Environment Configuration**
+
+Create `.env` files based on `.env.example`:
+
+**Server `.env`:**
+```env
+NODE_ENV=development
+PORT=5000
+
+# Database
+MONGODB_URI=mongodb://localhost:27017/zentro
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# JWT Secrets (generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+JWT_ACCESS_SECRET=your_access_secret_here
+JWT_REFRESH_SECRET=your_refresh_secret_here
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_your_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key
+
+# Gmail OAuth2 (for emails)
+EMAIL_USER=your_email@gmail.com
+GMAIL_CLIENT_ID=your_gmail_client_id
+GMAIL_CLIENT_SECRET=your_gmail_secret
+GMAIL_REFRESH_TOKEN=your_refresh_token
+
+# Optional: Gemini AI
+GEMINI_API_KEY=your_gemini_api_key
+
+# Optional: n8n Automation
+N8N_WEBHOOK_URL=http://localhost:5678/webhook
+```
+
+**Client `.env`:**
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+### **4. Run the Application**
+
+**Option A: Docker Compose (Recommended)**
+```bash
+docker-compose up --build
+```
+
+**Option B: Manual**
+```bash
+# Terminal 1: Start MongoDB & Redis
+# (If not using Docker)
+
+# Terminal 2: Start server
 cd server
 npm run dev
 
-# Terminal 2: Worker Service
+# Terminal 3: Start worker
+cd server
 npm run worker:dev
 
-# Terminal 3: Client Service
+# Terminal 4: Start client
 cd client
 npm run dev
 ```
 
-### Key Features
+### **5. Access the Application**
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:5000
+- **API Health**: http://localhost:5000/api/health
 
-#### Authentication
-- JWT + HttpOnly Cookies
-- Google OAuth integration
-- Redis session store
-- Rate limiting per IP
+---
 
-#### Products
-- CRUD operations with Cloudinary image upload
-- Redis caching for product lists
-- Advanced filtering & search
-- Category-based navigation
+## 🌐 Deployment
 
-#### Shopping Cart
-- Redis-backed cart persistence
-- Real-time sync across tabs
-- Inventory checks
+### **Free Tier Deployment Stack**
 
-#### Checkout & Payments
-- Stripe payment integration
-- Order creation & tracking
-- Concurrency control (inventory locking)
-- Email notifications via BullMQ
+| Service | Platform | Purpose |
+|---------|----------|---------|
+| **Frontend** | Vercel | React app hosting |
+| **Backend** | Render.com | Node.js API + Worker |
+| **Database** | MongoDB Atlas | Free 512MB cluster |
+| **Redis** | Upstash | Free tier (10K commands/day) |
+| **Images** | Cloudinary | Free 10GB storage |
 
-#### Real-time Features
-- Socket.IO with Redis adapter
-- Live product updates
-- Order status notifications
-- Multi-instance communication
+**Total Cost: $0/month** 🎉
 
-#### Background Jobs
-- Email sending (BullMQ)
-- Analytics generation
-- Scheduled tasks
+### **Deployment Steps**
 
-## Docker Compose Services
+See the comprehensive [Free Tier Deployment Guide](./docs/FREE_TIER_DEPLOYMENT.md) for detailed instructions.
 
-```yaml
-api-service:     # Port 5000 (HTTP + WebSocket)
-worker-service:  # Background job processor
-client-service:  # Port 3000 (Nginx)
-redis:           # Port 6379
-mongo:           # Port 27017
+**Quick summary:**
+1. Deploy frontend to Vercel
+2. Create MongoDB Atlas database
+3. Create Upstash Redis instance
+4. Deploy backend to Render with PM2 ecosystem config
+5. Set environment variables on all platforms
+6. Set up UptimeRobot to prevent cold starts
+
+### **Production Optimizations**
+
+✅ **PM2 Configuration**: API + Worker run together in one process  
+✅ **Worker Concurrency**: Optimized for 512MB RAM limit  
+✅ **Health Check Endpoint**: `/api/health` monitors all services  
+✅ **Logging**: Pino with production JSON logs  
+✅ **Caching**: Redis-backed caching for better performance  
+
+---
+
+## 📚 API Documentation
+
+### **Authentication**
+```
+POST   /api/auth/register           Register new user
+GET    /api/auth/verify-email/:token  Verify email
+POST   /api/auth/login              Login with credentials
+POST   /api/auth/verify-otp         Verify 2FA OTP
+GET    /api/auth/google             Google OAuth login
+GET    /api/auth/google/callback    OAuth callback
+POST   /api/auth/logout             Logout user
+GET    /api/auth/refresh            Refresh access token
+POST   /api/auth/request-reset      Request password reset
+POST   /api/auth/reset-password     Reset password
+POST   /api/auth/change-password    Change password (protected)
 ```
 
-## Testing
+### **Products**
+```
+GET    /api/products                List products (with filters)
+GET    /api/products/:id            Get product details
+POST   /api/products                Create product (admin)
+PATCH  /api/products/:id            Update product (admin)
+DELETE /api/products/:id            Delete product (admin)
+```
+
+### **Cart**
+```
+GET    /api/cart                    Get user cart
+POST   /api/cart                    Add item to cart
+PATCH  /api/cart/:itemId            Update cart item
+DELETE /api/cart/:itemId            Remove from cart
+DELETE /api/cart                    Clear cart
+```
+
+### **Orders**
+```
+POST   /api/orders                  Create order
+GET    /api/orders                  List user orders
+GET    /api/orders/:id              Get order details
+PATCH  /api/orders/:id/cancel       Cancel order
+```
+
+### **Payments**
+```
+POST   /api/payments/create-intent  Create Stripe payment intent
+POST   /api/payments/webhook        Stripe webhook handler
+```
+
+### **Reviews**
+```
+POST   /api/reviews                 Create review
+GET    /api/reviews/product/:id     Get product reviews
+PATCH  /api/reviews/:id             Update review
+DELETE /api/reviews/:id             Delete review
+```
+
+### **Admin**
+```
+GET    /api/admin/dashboard         Dashboard statistics
+GET    /api/admin/users             List all users
+PATCH  /api/admin/users/:id         Update user role
+GET    /api/admin/orders            List all orders
+PATCH  /api/admin/orders/:id        Update order status
+```
+
+### **Health Check**
+```
+GET    /api/health                  System health status
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
 # Run tests
+cd server
 npm test
 
-# Coverage
+# Run tests with coverage
 npm run test:coverage
+
+# Run specific test file
+npm test -- auth.test.js
 ```
 
-## Deployment
+---
 
-### Production Build
+## 🛠️ Development
 
-1. **Docker build:**
-   ```bash
-   docker-compose -f docker-compose.yml up -d
-   ```
+### **Code Quality**
+```bash
+# Lint
+npm run lint
 
-2. **Environment:**
-   - Set `NODE_ENV=production`
-   - Configure proper credentials
-   - Enable SSL/TLS with reverse proxy
+# Fix lint issues
+npm run lint:fix
 
-3. **Scaling:**
-   - Multiple API containers (load balanced)
-   - Redis Adapter ensures Socket.IO works across containers
-   - Worker containers scale horizontally
+# Format code
+npm run format
+```
 
-## API Documentation
-
-### Authentication Endpoints
-- `POST /api/auth/register` - Register user
-- `POST /api/auth/login` - Login with credentials
-- `GET /api/auth/google` - Google OAuth
-- `POST /api/auth/logout` - Logout
-- `POST /api/auth/change-password` - Change user password (protected)
-- `POST /api/auth/forgot-password` - Request password reset email
-- `POST /api/auth/reset-password` - Reset password with token
-- `POST /api/auth/refresh` - Refresh access token
-- `POST /api/auth/verify-email` - Verify email with token
-
-
-### Product Endpoints
-- `GET /api/products` - List products (with filters)
-- `GET /api/products/:id` - Get product details
-- `POST /api/products` - Create product (admin)
-- `PATCH /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
-
-### Order Endpoints
-- `POST /api/orders` - Create order
-- `GET /api/orders` - List user orders
-- `GET /api/orders/:id` - Get order details
-
-### Cart Endpoints (Redis-backed)
-- `GET /api/cart` - Get user cart
-- `POST /api/cart` - Add to cart
-- `DELETE /api/cart/:itemId` - Remove from cart
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions, please create an issue on GitHub.
-
-## Production SMTP & Email Deliverability
-
-When you run Zentro in production you must provide real SMTP credentials and follow deliverability best practices.
-
-Environment variables (examples):
-- `SMTP_HOST` or `EMAIL_HOST` – SMTP server hostname (e.g. `smtp.sendgrid.net`)
-- `SMTP_PORT` or `EMAIL_PORT` – SMTP port (587 for TLS, 465 for SSL)
-- `SMTP_USER` or `EMAIL_USER` – SMTP username
-- `SMTP_PASS` or `EMAIL_PASSWORD` – SMTP password / API key
-- `EMAIL_FROM` – From address (e.g. `Zentro <no-reply@yourdomain.com>`)
-- `EMAIL_SECURE` – `true` for port 465, otherwise `false`
-- `EMAIL_TEST_TO` – test recipient used by CI validation
-
-Checklist before going live:
-- Use a dedicated sending domain or subdomain (e.g. `mail.yourdomain.com`).
-- Add SPF and DKIM records for the sending domain.
-- Configure a DMARC policy (start with `p=none` and monitor reports).
-- Use verified SMTP providers (SendGrid, Mailgun, SES, Postmark) for higher deliverability.
-- Warm up your IP or sending domain gradually if sending bulk email.
-- Keep unsubscribe and spam complaint handling in place.
-- Monitor deliverability and complaint rates.
-
-GitHub Actions SMTP validation
-- Add the following repository secrets: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`.
-- The repository contains a workflow at `.github/workflows/smtp-validate.yml` which runs `server/scripts/send_test_email.js` to verify connectivity and credentials. Use `Actions -> Run workflow` to test after adding secrets.
-
-Local testing
-- Copy `.env.example` to `.env` and set SMTP variables.
-- You can run the small test script locally in `server`:
-
+### **Database Seeding**
 ```bash
 cd server
-npm ci
-npm run send:test-email
+npm run seed          # Seed sample data
+npm run seed:clear    # Clear database
 ```
 
-Email deliverability tips
-- Prefer transactional-email providers (SES, Postmark, SendGrid) over raw SMTP for reliability.
-- Use short links, avoid URL shorteners, and keep HTML emails lightweight.
-- Authenticate and verify your sending domain (SPF/DKIM); misconfigured DNS is the most common cause of failures.
-- Monitor bounces and suppress hard-bounced addresses.
+### **Generate JWT Secrets**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+### **Development Guidelines**
+- Follow existing code style
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation as needed
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **React Team** for the amazing React library
+- **Vercel** for Vite and excellent hosting
+- **Stripe** for payment infrastructure
+- **MongoDB Atlas** for database hosting
+- **Upstash** for serverless Redis
+- **Cloudinary** for image management
+
+---
+
+## 📧 Contact & Support
+
+- **Author**: Fardin Khan
+- **GitHub**: [@FardinKhan-Dev](https://github.com/FardinKhan-Dev)
+- **LinkedIn**: [Connect with me](www.linkedin.com/in/fardin-khan-dev)
+- **Email**: fardinkhan8637@gmail.com
+- **Issues**: [GitHub Issues](https://github.com/FardinKhan-Dev/Zentro/issues)
+
+### 💬 Get Help
+- 📝 Check the [documentation](./docs)
+- 🐛 Report bugs via GitHub Issues
+- 💡 Request features via GitHub Issues
+- ⭐ Star the repo if you find it useful!
+
+---
+
+<div align="center">
+
+**⭐ If you found this project helpful, please give it a star!**
+
+Made with ❤️ using React, Node.js, and MongoDB
+
+</div>
