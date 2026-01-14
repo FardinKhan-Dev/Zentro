@@ -3,10 +3,11 @@ import { baseApi } from '../../app/api/baseApi';
 export const productApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProducts: builder.query({
-      query: ({ page = 1, limit = 20, q = '', category = '' } = {}) => {
+      query: ({ page = 1, limit = 20, q = '', category = '', sort = '' } = {}) => {
         let url = `/products?page=${page}&limit=${limit}`;
         if (q) url += `&q=${encodeURIComponent(q)}`;
         if (category) url += `&category=${encodeURIComponent(category)}`;
+        if (sort) url += `&sort=${encodeURIComponent(sort)}`;
         return { url, method: 'GET' };
       },
       providesTags: ['Products'],
