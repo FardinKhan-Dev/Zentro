@@ -88,13 +88,15 @@ export const getProducts = catchAsync(async (req, res, next) => {
     if (req.query.category) filter.category = req.query.category;
     if (req.query.featured === 'true') filter.featured = true;
 
-    // Build sort object
+    // Build sort object - handle both formats (underscore and hyphen)
+    const sortParam = req.query.sort || 'newest';
     const sort = {};
-    if (req.query.sort === 'rating') {
+
+    if (sortParam === 'rating' || sortParam === 'popular') {
       sort.averageRating = -1; // Highest rating first
-    } else if (req.query.sort === 'price-asc') {
+    } else if (sortParam === 'price-asc' || sortParam === 'price_asc') {
       sort.price = 1;
-    } else if (req.query.sort === 'price-desc') {
+    } else if (sortParam === 'price-desc' || sortParam === 'price_desc') {
       sort.price = -1;
     } else {
       sort.createdAt = -1; // Default: newest first
