@@ -86,10 +86,23 @@ export const getProducts = catchAsync(async (req, res, next) => {
     const filter = {};
     if (req.query.q) filter.name = { $regex: req.query.q, $options: 'i' };
     if (req.query.category) filter.category = req.query.category;
+    if (req.query.featured === 'true') filter.featured = true;
+
+    // Build sort object
+    const sort = {};
+    if (req.query.sort === 'rating') {
+      sort.averageRating = -1; // Highest rating first
+    } else if (req.query.sort === 'price-asc') {
+      sort.price = 1;
+    } else if (req.query.sort === 'price-desc') {
+      sort.price = -1;
+    } else {
+      sort.createdAt = -1; // Default: newest first
+    }
 
     // Execute queries in parallel: Items, Total Count (filtered), Global Stats (unfiltered)
     const [items, total, stats] = await Promise.all([
-      Product.find(filter).skip(skip).limit(limit),
+      Product.find(filter).sort(sort).skip(skip).limit(limit),
       Product.countDocuments(filter),
       Product.aggregate([
         {

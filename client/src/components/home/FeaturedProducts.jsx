@@ -5,8 +5,13 @@ import ProductCard from '../products/ProductCard';
 import Button from '../common/Button';
 
 const FeaturedProducts = () => {
-  const { data, isLoading } = useGetProductsQuery({ limit: 6 });
-  const products = data?.data?.products || [];
+  // Fetch top-rated products (or featured products)
+  const { data, isLoading } = useGetProductsQuery({
+    featured: true,  // Only featured products
+    sort: 'rating',  // Sort by rating
+    limit: 6
+  });
+  const products = data?.data || [];
 
   if (isLoading) {
     return (
