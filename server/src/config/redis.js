@@ -2,50 +2,198 @@ import { createClient } from 'redis';
 import dotenv from 'dotenv';
 dotenv.config({ path: './.env' });
 
-
 let redisClient = null;
+let isRedisEnabled = false;
+let reconnectAttempts = 0;
+let healthCheckInterval = null;
 
+/**
+ * Initialize Redis connection with graceful failure handling
+ * App will continue working without Redis if connection fails
+ */
 export const initializeRedis = async () => {
   if (redisClient) return redisClient;
 
-  redisClient = createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
-    socket: {
-      reconnectStrategy: (retries) => {
-        if (retries > 10) return new Error('Redis reconnect failed');
-        return Math.min(retries * 100, 2000);
-      },
-    },
-  });
-
-  redisClient.on('error', (err) => console.error('Redis Error:', err));
-  redisClient.on('connect', () => console.log('Redis connecting...'));
-  redisClient.on('ready', () => console.log('Redis ready'));
-  redisClient.on('end', () => console.log('Redis disconnected'));
+  // Skip Redis if explicitly disabled
+  if (process.env.DISABLE_REDIS === 'true') {
+    console.log('❌ Redis explicitly disabled via DISABLE_REDIS env var');
+    return null;
+  }
 
   try {
+    redisClient = createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      socket: {
+        reconnectStrategy: (retries) => {
+          reconnectAttempts = retries;
+
+          // Give up after 10 retries
+          if (retries > 10) {
+            console.warn('⚠️  Redis reconnect limit reached - entering no-cache mode');
+            return new Error('Redis reconnect failed');
+          }
+
+          // Exponential backoff with max 5 seconds
+          return Math.min(retries * 100, 5000);
+        },
+      },
+    });
+
+    // Event handlers
+    redisClient.on('error', (err) => {
+      console.error('Redis Error:', err.message);
+
+      // Detect Upstash limit exceeded
+      if (err.message.includes('LIMIT_EXCEEDED') ||
+        err.message.includes('capacity') ||
+        err.message.includes('quota')) {
+        console.warn('⚠️  Upstash limit exceeded - switching to no-cache mode');
+        console.warn('⚠️  App will continue without Redis caching');
+        isRedisEnabled = false;
+      }
+    });
+
+    redisClient.on('connect', () => {
+      console.log('🔄 Redis connecting...');
+    });
+
+    redisClient.on('ready', () => {
+      console.log('✅ Redis ready and available');
+      isRedisEnabled = true;
+      reconnectAttempts = 0;
+    });
+
+    redisClient.on('end', () => {
+      console.log('❌ Redis connection ended');
+      isRedisEnabled = false;
+    });
+
+    redisClient.on('reconnecting', () => {
+      console.log(`🔄 Redis reconnecting (attempt ${reconnectAttempts})...`);
+    });
+
+    // Attempt connection
     await redisClient.connect();
     console.log('✓ Redis connected successfully');
+    isRedisEnabled = true;
+
+    // Start health check for auto-recovery
+    startHealthCheck();
+
     return redisClient;
   } catch (err) {
     console.warn('⚠️  Redis connection failed:', err.message);
     console.warn('⚠️  App will continue WITHOUT Redis caching');
+    console.warn('⚠️  Will retry connection every 60 seconds...');
+
     redisClient = null;
+    isRedisEnabled = false;
+
+    // Start health check to retry connection
+    startHealthCheck();
+
     return null;
   }
 };
 
+/**
+ * Get Redis client (returns null if unavailable - NO EXCEPTIONS)
+ * @returns {Object|null} Redis client or null
+ */
 export const getRedisClient = () => {
-  if (!redisClient) {
-    throw new Error('Redis client not initialized. Call initializeRedis first.');
+  if (!redisClient || !isRedisEnabled) {
+    return null;
   }
   return redisClient;
 };
 
-export const disconnectRedis = async () => {
-  if (redisClient) {
-    await redisClient.quit();
-    redisClient = null;
-    console.log('Redis disconnected');
+/**
+ * Check if Redis is currently available
+ * @returns {boolean}
+ */
+export const isRedisAvailable = () => {
+  return redisClient !== null && isRedisEnabled && redisClient.isReady;
+};
+
+/**
+ * Periodic health check for auto-recovery
+ * Attempts to reconnect every 60 seconds if Redis is down
+ */
+const startHealthCheck = () => {
+  // Clear existing interval
+  if (healthCheckInterval) {
+    clearInterval(healthCheckInterval);
   }
+
+  healthCheckInterval = setInterval(async () => {
+    // If Redis is down, try to reconnect
+    if (!redisClient || !isRedisEnabled) {
+      console.log('🔍 Health check: Redis unavailable, attempting reconnection...');
+
+      try {
+        // Clean up old client
+        if (redisClient) {
+          try {
+            await redisClient.quit();
+          } catch (err) {
+            // Ignore cleanup errors
+          }
+          redisClient = null;
+        }
+
+        // Try to reconnect
+        await initializeRedis();
+
+        if (isRedisAvailable()) {
+          console.log('✅ Health check: Redis reconnected successfully!');
+        }
+      } catch (err) {
+        console.log('⚠️  Health check: Reconnection failed, will retry in 60s');
+      }
+    } else {
+      // Ping to verify connection is still alive
+      try {
+        await redisClient.ping();
+      } catch (err) {
+        console.warn('⚠️  Health check: Redis ping failed');
+        isRedisEnabled = false;
+      }
+    }
+  }, 60000); // Check every 60 seconds
+};
+
+/**
+ * Gracefully disconnect Redis
+ */
+export const disconnectRedis = async () => {
+  // Clear health check
+  if (healthCheckInterval) {
+    clearInterval(healthCheckInterval);
+    healthCheckInterval = null;
+  }
+
+  if (redisClient) {
+    try {
+      await redisClient.quit();
+      console.log('✓ Redis disconnected gracefully');
+    } catch (err) {
+      console.warn('Redis disconnect error:', err.message);
+    }
+
+    redisClient = null;
+    isRedisEnabled = false;
+  }
+};
+
+/**
+ * Get Redis status for monitoring
+ * @returns {Object} Status object
+ */
+export const getRedisStatus = () => {
+  return {
+    connected: isRedisAvailable(),
+    enabled: isRedisEnabled,
+    client: redisClient ? 'initialized' : 'null',
+    reconnectAttempts,
+  };
 };

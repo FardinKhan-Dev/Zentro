@@ -1,6 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { getRedisClient } from '../config/redis.js';
+import { getRedisClient, isRedisAvailable } from '../config/redis.js';
 import registerInventoryHandlers from './events/inventoryHandlers.js';
 import dotenv from 'dotenv'
 
@@ -8,13 +8,7 @@ dotenv.config({ path: './.env' })
 
 let io;
 
-export const initializeSocketIO = (httpServer) => {
-  const redisClient = getRedisClient();
-  if (!redisClient) {
-    console.error('Redis client not initialized. Socket.IO cannot start.');
-    return null;
-  }
-
+export const initializeSocketIO = async (httpServer) => {
   io = new SocketIOServer(httpServer, {
     cors: {
       origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -22,17 +16,29 @@ export const initializeSocketIO = (httpServer) => {
     },
   });
 
-  const pubClient = redisClient;
-  const subClient = redisClient.duplicate();
+  // Try to use Redis adapter for multi-instance support
+  const redisClient = getRedisClient();
 
-  // We must connect the duplicated client before using it.
-  // The original redisClient is already connected from initializeRedis.
-  subClient.connect().then(() => {
-    io.adapter(createAdapter(pubClient, subClient));
-  }).catch(err => {
-    console.error('Failed to connect subClient to Redis:', err);
-  });
+  if (redisClient && isRedisAvailable()) {
+    try {
+      console.log('🔄 Setting up Socket.IO with Redis adapter (multi-instance mode)...');
 
+      const pubClient = redisClient;
+      const subClient = redisClient.duplicate();
+
+      // Connect the duplicated client
+      await subClient.connect();
+
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log('✅ Socket.IO configured with Redis adapter');
+    } catch (err) {
+      console.warn('⚠️  Failed to setup Redis adapter:', err.message);
+      console.warn('⚠️  Socket.IO running in single-instance mode (no Redis)');
+    }
+  } else {
+    console.warn('⚠️  Redis unavailable - Socket.IO running in single-instance mode');
+    console.warn('⚠️  Real-time features will work, but only within this server instance');
+  }
 
   io.on('connection', (socket) => {
     console.log(`✓ Client connected: ${socket.id}`);

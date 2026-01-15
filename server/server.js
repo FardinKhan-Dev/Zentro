@@ -57,31 +57,51 @@ if (process.env.NODE_ENV !== 'test') {
   initializeCloudinary();
   initializeStripe();
   initializeEmailService();
-  // Setup session store (Redis)
-  const sessionStore = new RedisStore({ client: redisClient });
 
-  app.use(
-    session({
-      store: sessionStore,
-      name: process.env.SESSION_NAME || 'sid',
-      secret: process.env.SESSION_SECRET || 'dev_session_secret',
-      resave: false,
-      saveUninitialized: true,
-      cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-        maxAge: parseInt(process.env.SESSION_MAX_AGE || String(24 * 60 * 60 * 1000), 10),
-      },
-    })
-  );
+  // Setup session store (Redis-backed if available, memory fallback)
+  if (redisClient) {
+    const sessionStore = new RedisStore({ client: redisClient });
+    app.use(
+      session({
+        store: sessionStore,
+        name: process.env.SESSION_NAME || 'sid',
+        secret: process.env.SESSION_SECRET || 'dev_session_secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+          maxAge: parseInt(process.env.SESSION_MAX_AGE || String(24 * 60 * 60 * 1000), 10),
+        },
+      })
+    );
+    logger.info('✓ Session store configured with Redis');
+  } else {
+    // Fallback to memory store (not suitable for production with multiple instances)
+    logger.warn('⚠️  Session store using memory (not suitable for multi-instance production)');
+    app.use(
+      session({
+        name: process.env.SESSION_NAME || 'sid',
+        secret: process.env.SESSION_SECRET || 'dev_session_secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+          maxAge: parseInt(process.env.SESSION_MAX_AGE || String(24 * 60 * 60 * 1000), 10),
+        },
+      })
+    );
+  }
 
   // Initialize passport (for Google OAuth sessions)
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Socket.IO initialized via centralized module
-  io = initializeSocketIO(httpServer);
+  // Socket.IO initialized via centralized module (async)
+  io = await initializeSocketIO(httpServer);
 } else {
   logger.info('Test mode: skipping external services, sessions, and Socket.IO initialization');
 }

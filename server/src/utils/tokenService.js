@@ -72,8 +72,17 @@ export const sendTokensWithCookies = (res, user, rememberMe = false) => {
 };
 
 export const clearAuthCookies = (res) => {
-  res.cookie('accessToken', '', { httpOnly: true, maxAge: 0, path: '/' });
-  res.cookie('refreshToken', '', { httpOnly: true, maxAge: 0, path: '/' });
+  // Must match the same secure and sameSite settings as when cookies were set
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+    maxAge: 0,
+    path: '/',
+  };
+
+  res.cookie('accessToken', '', cookieOptions);
+  res.cookie('refreshToken', '', cookieOptions);
 };
 
 export default {

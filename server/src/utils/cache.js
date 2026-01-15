@@ -27,7 +27,10 @@ export const get = async (key) => {
 export const set = async (key, value, ttl = 3600) => {
     try {
         const redis = getRedisClient();
-        if (!redis) return;
+        if (!redis) {
+            console.log(`ℹ️  Cache SET skipped (Redis unavailable): ${key}`);
+            return;
+        }
 
         await redis.setEx(key, ttl, JSON.stringify(value));
     } catch (error) {
