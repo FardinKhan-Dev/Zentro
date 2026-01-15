@@ -12,11 +12,21 @@ let healthCheckInterval = null;
  * App will continue working without Redis if connection fails
  */
 export const initializeRedis = async () => {
+  // CRITICAL: Check for DISABLE_REDIS FIRST, before anything else
+  if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+    console.log('❌ Redis DISABLED via DISABLE_REDIS environment variable');
+    console.log('   App will run without caching (slower but stable)');
+    isRedisEnabled = false;
+    redisClient = null;
+    return null;
+  }
+
   if (redisClient) return redisClient;
 
-  // Skip Redis if explicitly disabled
-  if (process.env.DISABLE_REDIS === 'true') {
-    console.log('❌ Redis explicitly disabled via DISABLE_REDIS env var');
+  // Check if REDIS_URL is provided
+  if (!process.env.REDIS_URL) {
+    console.warn('⚠️  No REDIS_URL found - running without Redis');
+    isRedisEnabled = false;
     return null;
   }
 
@@ -25,16 +35,11 @@ export const initializeRedis = async () => {
       url: process.env.REDIS_URL || 'redis://localhost:6379',
       socket: {
         reconnectStrategy: (retries) => {
-          reconnectAttempts = retries;
-
-          // Give up after 10 retries
           if (retries > 10) {
-            console.warn('⚠️  Redis reconnect limit reached - entering no-cache mode');
-            return new Error('Redis reconnect failed');
+            console.log('❌ Redis reconnection failed after 10 attempts');
+            return new Error('Too many retries');
           }
-
-          // Exponential backoff with max 5 seconds
-          return Math.min(retries * 100, 5000);
+          return Math.min(retries * 50, 500);
         },
       },
     });
