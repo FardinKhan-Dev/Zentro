@@ -43,14 +43,36 @@ export const initializeRedis = async () => {
     redisClient.on('error', (err) => {
       console.error('Redis Error:', err.message);
 
-      // Detect Upstash limit exceeded
+      // Detect Upstash limit exceeded or max requests
       if (err.message.includes('LIMIT_EXCEEDED') ||
         err.message.includes('capacity') ||
-        err.message.includes('quota')) {
-        console.warn('⚠️  Upstash limit exceeded - switching to no-cache mode');
+        err.message.includes('quota') ||
+        err.message.includes('max requests limit exceeded') ||
+        err.message.includes('max_requests_limit')) {
+        console.warn('⚠️  Upstash limit/quota exceeded - switching to no-cache mode');
         console.warn('⚠️  App will continue without Redis caching');
+        console.warn('⚠️  Limits reset monthly - auto-recovery will reconnect');
+
+        // Disable Redis immediately to prevent further operations
         isRedisEnabled = false;
+
+        // Force disconnect to prevent more errors
+        setTimeout(() => {
+          if (redisClient) {
+            redisClient.quit().catch(() => {
+              // Ignore quit errors, just set to null
+            }).finally(() => {
+              redisClient = null;
+            });
+          }
+        }, 100);
+
+        return; // Don't propagate error
       }
+
+      // For other errors, just log and disable temporarily
+      console.warn('⚠️  Redis error occurred, disabling temporarily');
+      isRedisEnabled = false;
     });
 
     redisClient.on('connect', () => {

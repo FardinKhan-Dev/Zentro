@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout, openAuthDrawer } from "../../features/auth/authSlice";
+import { useLogoutMutation } from "../../features/auth/authApi";
 import CartIcon from "../../components/cart/CartIcon";
 import { useAuth } from "../../hooks/useAuth";
 import { useSocket } from "../../hooks/useSocket";
@@ -125,10 +126,21 @@ const Navbar = () => {
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/");
-    setUserMenuOpen(false);
+  const [logoutMutation] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      // Call server logout endpoint to clear cookies
+      await logoutMutation().unwrap();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with client-side logout even if server call fails
+    } finally {
+      // Clear Redux state
+      dispatch(logout());
+      navigate("/");
+      setUserMenuOpen(false);
+    }
   };
 
   const navLinks = [

@@ -1,12 +1,15 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiGrid, FiBox, FiShoppingCart, FiUsers, FiPieChart, FiSettings, FiLogOut } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
+import { useLogoutMutation } from '../../features/auth/authApi';
 
 const AdminSidebar = ({ isOpen, onClose }) => {
     const location = useLocation();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [logoutMutation] = useLogoutMutation();
 
     const navigation = [
         { name: 'Dashboard', href: '/admin', icon: FiGrid },
@@ -74,7 +77,16 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 {/* Bottom Section */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-100 dark:border-white/10">
                     <button
-                        onClick={() => dispatch(logout())}
+                        onClick={async () => {
+                            try {
+                                await logoutMutation().unwrap();
+                            } catch (err) {
+                                console.error('Logout error:', err);
+                            } finally {
+                                dispatch(logout());
+                                navigate('/');
+                            }
+                        }}
                         className="flex items-center w-full px-6 py-3.5 text-sm font-medium text-gray-500 dark:text-gray-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
                     >
                         <FiLogOut className="w-5 h-5 mr-4" />
