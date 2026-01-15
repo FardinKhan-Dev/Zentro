@@ -4,6 +4,7 @@ import { FiUser, FiSmartphone, FiMapPin, FiPackage, FiLogOut, FiPlus, FiTrash2, 
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../features/auth/authSlice';
+import { useLogoutMutation } from '../features/auth/authApi';
 import AddressForm from '../components/checkout/AddressForm';
 import { OrdersPage } from '../components/orders';
 import toast from 'react-hot-toast';
@@ -27,11 +28,20 @@ const ProfilePage = () => {
     const [showChangePassword, setShowChangePassword] = useState(false);
 
     const user = userData?.data;
+    const [logoutMutation] = useLogoutMutation();
 
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login');
-        toast.success('Logged out successfully');
+    const handleLogout = async () => {
+        try {
+            // Call server logout endpoint to clear cookies
+            await logoutMutation().unwrap();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Clear Redux state
+            dispatch(logout());
+            navigate('/');
+            toast.success('Logged out successfully');
+        }
     };
 
     const handleAddressSubmit = async (formData) => {
@@ -267,8 +277,8 @@ const ProfilePage = () => {
                                                 <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage your personal information</p>
                                             </div>
                                             <div className="w-10 h-10 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-                                            <FiSettings size={20} />
-                                        </div>
+                                                <FiSettings size={20} />
+                                            </div>
                                         </div>
 
                                         {isEditingProfile ? (

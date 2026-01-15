@@ -2,6 +2,8 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetCartQuery } from '../../features/cart/cartApi';
 import { closeCartDrawer, selectIsCartDrawerOpen } from '../../features/cart/cartSlice';
+import { openAuthDrawer } from '../../features/auth/authSlice';
+import { useAuth } from '../../hooks/useAuth';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
 
@@ -10,8 +12,9 @@ import CartSummary from './CartSummary';
  */
 const CartDrawer = () => {
     const dispatch = useDispatch();
+    const { isAuthenticated } = useAuth();
     const isOpen = useSelector(selectIsCartDrawerOpen);
-    const { data, isLoading, isError } = useGetCartQuery();
+    const { data, isLoading, isError, error } = useGetCartQuery();
 
     const cart = data?.data?.cart;
     const itemCount = data?.data?.itemCount || 0;
@@ -52,8 +55,31 @@ const CartDrawer = () => {
                     )}
 
                     {isError && (
-                        <div className="p-12 text-center text-red-500">
-                            <p>Failed to load cart. Please try again.</p>
+                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                            {error?.status === 401 || !isAuthenticated ? (
+                                <>
+                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                        <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Login Required</h3>
+                                    <p className="text-gray-600 dark:text-gray-400 mb-6">Please login to view your cart</p>
+                                    <button
+                                        onClick={() => {
+                                            handleClose();
+                                            dispatch(openAuthDrawer('login'));
+                                        }}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                                    >
+                                        Login Now
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="text-red-500">
+                                    <p>Failed to load cart. Please try again.</p>
+                                </div>
+                            )}
                         </div>
                     )}
 
