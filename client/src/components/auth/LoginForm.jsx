@@ -53,8 +53,6 @@ const LoginForm = ({ isDrawer = false }) => {
                 return;
             }
 
-            console.log(response);
-
             // Refetch cart to sync guest cart items with logged-in user cart
             dispatch(cartApi.util.invalidateTags(['Cart']));
 

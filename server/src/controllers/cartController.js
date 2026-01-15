@@ -13,30 +13,24 @@ const getCartCacheKey = (userId, sessionId) => {
 };
 
 /**
- * GET /api/cart - Get current user's cart
+ * GET /api/cart - Get current user's cart (Auth Required)
  */
 export const getCart = catchAsync(async (req, res, next) => {
     const userId = req.user?.id;
-    const sessionId = req.sessionID || req.cookies.sessionId;
 
-    if (!userId && !sessionId) {
-        throw new AppError('User or session required', 400);
+    if (!userId) {
+        throw new AppError('Authentication required to access cart', 401);
     }
 
-    const cacheKey = getCartCacheKey(userId, sessionId);
+    const cacheKey = `cart:user:${userId}`;
 
     // Try to get from cache first
     let cart = await cache.get(cacheKey);
 
     if (!cart) {
         // Not in cache, get from database
-        if (userId) {
-            cart = await Cart.findOrCreateForUser(userId)
-            await cart.populate('items.product', 'name price images stock');
-        } else {
-            cart = await Cart.findOrCreateForGuest(sessionId)
-            await cart.populate('items.product', 'name price images stock');
-        }
+        cart = await Cart.findOrCreateForUser(userId);
+        await cart.populate('items.product', 'name price images stock');
 
         // Cache the cart
         await cache.set(cacheKey, cart, 7 * 24 * 60 * 60); // 7 days
@@ -54,12 +48,15 @@ export const getCart = catchAsync(async (req, res, next) => {
 });
 
 /**
- * POST /api/cart/items - Add item to cart
+ * POST /api/cart/items - Add item to cart (Auth Required)
  */
 export const addItemToCart = catchAsync(async (req, res, next) => {
     const { productId, quantity = 1 } = req.body;
     const userId = req.user?.id;
-    const sessionId = req.sessionID || req.cookies.sessionId;
+
+    if (!userId) {
+        throw new AppError('Authentication required to add items to cart', 401);
+    }
 
     if (!productId) {
         throw new AppError('Product ID is required', 400);
@@ -79,16 +76,8 @@ export const addItemToCart = catchAsync(async (req, res, next) => {
         throw new AppError(`Only ${product.stock} items available in stock`, 400);
     }
 
-    // Get or create cart
-    let cart;
-    if (userId) {
-        cart = await Cart.findOrCreateForUser(userId);
-    } else {
-        if (!sessionId) {
-            throw new AppError('Session required for guest cart', 400);
-        }
-        cart = await Cart.findOrCreateForGuest(sessionId);
-    }
+    // Get or create user cart
+    const cart = await Cart.findOrCreateForUser(userId);
 
     // Check if adding more would exceed stock
     const existingItem = cart.items.find(
@@ -114,7 +103,7 @@ export const addItemToCart = catchAsync(async (req, res, next) => {
     await cart.populate('items.product', 'name price images stock');
 
     // Update cache
-    const cacheKey = getCartCacheKey(userId, sessionId);
+    const cacheKey = `cart:user:${userId}`;
     await cache.set(cacheKey, cart, 7 * 24 * 60 * 60);
 
     return customResponse(res, {

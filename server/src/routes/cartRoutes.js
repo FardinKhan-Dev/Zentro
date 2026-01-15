@@ -7,51 +7,51 @@ import {
     clearCart,
     mergeGuestCart,
 } from '../controllers/cartController.js';
-import { protect, optionalAuth } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// All cart routes can work with or without authentication
-// If authenticated, use user cart; otherwise use session cart
+// All cart routes now require authentication
+// Users must be logged in to use cart functionality
 
 /**
  * @route   GET /api/cart
- * @desc    Get current cart
- * @access  Public (uses session for guest, user ID for authenticated)
+ * @desc    Get current user's cart
+ * @access  Private (requires login)
  */
-router.get('/', optionalAuth, getCart);
+router.get('/', protect, getCart);
 
 /**
  * @route   POST /api/cart/items
  * @desc    Add item to cart
- * @access  Public
+ * @access  Private (requires login)
  */
-router.post('/items', optionalAuth, addItemToCart);
+router.post('/items', protect, addItemToCart);
 
 /**
  * @route   PATCH /api/cart/items/:productId
  * @desc    Update item quantity in cart
- * @access  Public
+ * @access  Private (requires login)
  */
-router.patch('/items/:productId', optionalAuth, updateCartItem);
+router.patch('/items/:productId', protect, updateCartItem);
 
 /**
  * @route   DELETE /api/cart/items/:productId
  * @desc    Remove item from cart
- * @access  Public
+ * @access  Private (requires login)
  */
-router.delete('/items/:productId', optionalAuth, removeCartItem);
+router.delete('/items/:productId', protect, removeCartItem);
 
 /**
  * @route   DELETE /api/cart
  * @desc    Clear entire cart
- * @access  Public
+ * @access  Private (requires login)
  */
-router.delete('/', optionalAuth, clearCart);
+router.delete('/', protect, clearCart);
 
 /**
  * @route   POST /api/cart/merge
- * @desc    Merge guest cart into user cart (called after login)
+ * @desc    Merge guest cart into user cart (deprecated - no longer used)
  * @access  Private
  */
 router.post('/merge', protect, mergeGuestCart);

@@ -2,18 +2,32 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAddToCartMutation } from '../../features/cart/cartApi';
 import { openCartDrawer } from '../../features/cart/cartSlice';
+import { openAuthDrawer } from '../../features/auth/authSlice';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 /**
  * AddToCartButton Component
- * Reusable button for adding products to cart
+ * Reusable button for adding products to cart (Auth Required)
  */
 const AddToCartButton = ({ productId, initialQuantity = 1, quantity, className = '', variant = 'primary', children, ...props }) => {
     const dispatch = useDispatch();
+    const { isAuthenticated } = useAuth();
     const [addToCart, { isLoading }] = useAddToCartMutation();
     const [internalQuantity, setInternalQuantity] = useState(initialQuantity);
 
     const handleAddToCart = async () => {
+        // Check if user is logged in
+        if (!isAuthenticated) {
+            toast.error('Please login to add items to cart', {
+                duration: 3000,
+                icon: '🔒',
+            });
+            // Open login drawer
+            dispatch(openAuthDrawer('login'));
+            return;
+        }
+
         const quantityToAdd = quantity !== undefined ? quantity : internalQuantity;
         try {
             await addToCart({ productId, quantity: quantityToAdd }).unwrap();
