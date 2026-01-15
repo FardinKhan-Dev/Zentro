@@ -53,7 +53,13 @@ let subClient;
 if (process.env.NODE_ENV !== 'test') {
   // Initialize external services
   await connectDB();
-  redisClient = await initializeRedis();
+
+  // TEMPORARILY DISABLED: Redis initialization commented out due to Upstash limits
+  // Uncomment when limits reset or upgraded to paid tier
+  // redisClient = await initializeRedis();
+  redisClient = null; // Force null for now
+  console.log('⚠️  Redis temporarily disabled - app running without cache');
+
   initializeCloudinary();
   initializeStripe();
   initializeEmailService();
