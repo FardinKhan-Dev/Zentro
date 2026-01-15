@@ -19,6 +19,7 @@ import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProfilePage from './pages/ProfilePage';
 import Home from './pages/Home';
+import LandingPage from './pages/LandingPage';
 import { AdminLayout, Dashboard, ProductManager, OrderManager, UserManager, Analytics, AdminSettings, AdminProfile } from './components/admin';
 import AuthDrawer from './components/auth/AuthDrawer';
 import AuthRedirect from './components/auth/AuthRedirect';
@@ -83,6 +84,10 @@ const App = () => {
 
           {/* Product Routes */}
           <Route path="/products" element={<ProductList />} />
+
+          {/* Scrollytelling Experience */}
+          <Route path="/experience" element={<LandingPage />} />
+
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/products/:id/edit" element={
             <ProtectedRoute role="admin">

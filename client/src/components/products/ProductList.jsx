@@ -8,7 +8,7 @@ const ProductList = () => {
     category: '',
     minPrice: '',
     maxPrice: '',
-    sort: '',
+    sort: 'newest',
     q: ''
   });
   const [page, setPage] = useState(1);
@@ -34,10 +34,10 @@ const ProductList = () => {
   ];
 
   const sortOptions = [
-    { value: '', label: 'Newest Arrivals' },
-    { value: 'price-asc', label: 'Price: Low to High' },
-    { value: 'price-desc', label: 'Price: High to Low' },
-    { value: 'rating', label: 'Highest Rated' },
+    { value: 'newest', label: 'Newest Arrivals' },
+    { value: 'price_asc', label: 'Price: Low to High' },
+    { value: 'price_desc', label: 'Price: High to Low' },
+    { value: 'popular', label: 'Best Selling' },
   ];
 
   const handleFilterChange = (key, value) => {

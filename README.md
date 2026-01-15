@@ -115,6 +115,85 @@
 
 ---
 
+## 🎬 Premium Scrollytelling Experience
+
+<div align="center">
+
+### ✨ Immersive Canvas-Based Scroll Animation
+
+**Experience the future of product showcases**
+
+![Scrollytelling Demo](./docs/screenrecords/experience-video.mp4)
+
+*Smooth 192-frame canvas animation that responds to scroll*
+
+</div>
+
+### 🎨 What Makes It Special?
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      
+#### 🎯 **Canvas-Driven Animation**
+- **192 high-quality frames** loaded and rendered in real-time
+- Smooth **60fps** scroll-synchronized playback
+- Full-screen immersive experience
+- Zero video lag or buffering
+
+#### 🌊 **Scroll-Triggered Flow**
+- Product name and price appear at start
+- Text elegantly fades out to reveal product
+- Each scroll position maps to a specific frame
+- Buttery smooth transitions throughout
+
+    </td>
+    <td width="50%" valign="top">
+      
+#### ⚡ **Performance Optimized**
+- Intelligent image preloading
+- Responsive canvas sizing
+- RAF-based rendering for 60fps
+- Minimal memory footprint
+
+#### 🎭 **Modern Tech Stack**
+- **Framer Motion** for scroll tracking
+- **HTML5 Canvas** for rendering
+- **React Hooks** for state management
+- **Tailwind CSS** for styling
+
+    </td>
+  </tr>
+</table>
+
+### 🚀 How to Experience It
+
+```bash
+# Navigate to the experience page
+http://localhost:5173/experience
+
+# Or in production
+https://zentro-cyan.vercel.app/experience
+```
+
+**Try it yourself:**
+1. Visit the `/experience` route
+2. Watch the product name and price appear
+3. Start scrolling down slowly
+4. Watch the magic unfold! ✨
+
+### 💎 Technical Highlights
+
+- **Image Sequence**: 192 individual frames create fluid motion
+- **Scroll Mapping**: Each scroll position corresponds to a specific frame (0-191)
+- **Cover Fit**: Frames fill the entire viewport for maximum impact
+- **Fade Effects**: Text smoothly fades out (0-25% scroll) to showcase the product
+- **Responsive**: Works flawlessly on desktop, tablet, and mobile devices
+
+> **Note**: This is not a video or GIF - it's a real-time canvas animation synchronized with your scroll position, giving you complete control over the playback!
+
+---
+
 ## ✨ Features
 
 ### 🔐 **Authentication & Authorization**

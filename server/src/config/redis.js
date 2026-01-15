@@ -1,6 +1,6 @@
 import { createClient } from 'redis';
 import dotenv from 'dotenv';
-dotenv.config({path: './.env'});
+dotenv.config({ path: './.env' });
 
 
 let redisClient = null;
@@ -28,8 +28,10 @@ export const initializeRedis = async () => {
     console.log('✓ Redis connected successfully');
     return redisClient;
   } catch (err) {
-    console.error('✗ Failed to connect to Redis:', err);
-    process.exit(1);
+    console.warn('⚠️  Redis connection failed:', err.message);
+    console.warn('⚠️  App will continue WITHOUT Redis caching');
+    redisClient = null;
+    return null;
   }
 };
 
