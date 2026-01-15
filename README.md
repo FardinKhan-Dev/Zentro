@@ -123,10 +123,7 @@
 
 **Experience the future of product showcases**
 
-<video width="100%" autoplay loop muted playsinline>
-  <source src="./docs/screenrecords/experience-video.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Scrollytelling Demo](./docs/screenrecords/experience.gif)
 
 *Smooth 192-frame canvas animation that responds to scroll*
 
