@@ -47,32 +47,84 @@ export const trackSale = async (orderData) => {
  */
 export const getSalesData = async (startDate, endDate) => {
     const redis = getRedisClient();
-    if (!redis) return null;
 
+    // Try Redis first
+    if (redis) {
+        try {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const salesData = [];
+
+            // Iterate through each day
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const date = d.toISOString().split('T')[0];
+                const key = `analytics:sales:daily:${date}`;
+
+                const data = await redis.hGetAll(key);
+
+                salesData.push({
+                    date,
+                    revenue: data.revenue ? parseFloat(data.revenue) / 100 : 0,
+                    orders: data.orders ? parseInt(data.orders) : 0,
+                    items: data.items ? parseInt(data.items) : 0,
+                });
+            }
+
+            return salesData;
+        } catch (error) {
+            console.error('Error getting sales data from Redis:', error);
+            // Fall through to database fallback
+        }
+    }
+
+    // Fallback to database when Redis unavailable
+    console.log('⚠️  Using database fallback for sales data (Redis unavailable)');
     try {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        const salesData = [];
 
-        // Iterate through each day
+        // Query database for orders in date range
+        const orders = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: start, $lte: end },
+                    paymentStatus: 'paid'
+                }
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    revenue: { $sum: '$totalAmount' },
+                    orders: { $sum: 1 },
+                    items: { $sum: { $size: '$items' } }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        // Create a map of dates to data
+        const dataMap = new Map(orders.map(o => [o._id, o]));
+
+        // Fill in all dates in range (including zeros)
+        const salesData = [];
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
             const date = d.toISOString().split('T')[0];
-            const key = `analytics:sales:daily:${date}`;
-
-            const data = await redis.hGetAll(key);
+            const data = dataMap.get(date);
 
             salesData.push({
                 date,
-                revenue: data.revenue ? parseFloat(data.revenue) / 100 : 0,
-                orders: data.orders ? parseInt(data.orders) : 0,
-                items: data.items ? parseInt(data.items) : 0,
+                revenue: data?.revenue || 0,
+                orders: data?.orders || 0,
+                items: data?.items || 0,
             });
         }
 
         return salesData;
     } catch (error) {
-        console.error('Error getting sales data:', error);
-        return null;
+        console.error('Error getting sales data from database:', error);
+        return [];
     }
 };
 
@@ -173,38 +225,45 @@ export const trackProductView = async (productId) => {
  */
 export const getTopViewedProducts = async (limit = 10) => {
     const redis = getRedisClient();
-    if (!redis) return [];
 
-    try {
-        const productIdsWithScores = await redis.zRangeWithScores('analytics:products:views', 0, limit - 1, {
-            REV: true
-        });
+    // Try Redis first
+    if (redis) {
+        try {
+            const productIdsWithScores = await redis.zRangeWithScores('analytics:products:views', 0, limit - 1, {
+                REV: true
+            });
 
-        const products = [];
+            const products = [];
 
-        for (const item of productIdsWithScores) {
-            const productId = item.value;
-            const views = item.score;
+            for (const item of productIdsWithScores) {
+                const productId = item.value;
+                const views = item.score;
 
-            try {
-                const product = await Product.findById(productId).select('name price images');
+                try {
+                    const product = await Product.findById(productId).select('name price images');
 
-                if (product) {
-                    products.push({
-                        product,
-                        views,
-                    });
+                    if (product) {
+                        products.push({
+                            product,
+                            views,
+                        });
+                    }
+                } catch (err) {
+                    console.error(`Error finding product ${productId}:`, err);
                 }
-            } catch (err) {
-                console.error(`Error finding product ${productId}:`, err);
             }
-        }
 
-        return products;
-    } catch (error) {
-        console.error('Error getting top viewed products:', error);
-        return [];
+            if (products.length > 0) return products;
+            // Fall through if no products found
+        } catch (error) {
+            console.error('Error getting top viewed products from Redis:', error);
+            // Fall through to database fallback
+        }
     }
+
+    // Fallback: Return empty array (views not tracked without Redis)
+    console.log('⚠️  Product views not available (Redis disabled)');
+    return [];
 };
 
 /**
@@ -212,31 +271,76 @@ export const getTopViewedProducts = async (limit = 10) => {
  */
 export const getBestSellingProducts = async (limit = 10) => {
     const redis = getRedisClient();
-    if (!redis) return [];
 
+    // Try Redis first
+    if (redis) {
+        try {
+            const productIdsWithScores = await redis.zRangeWithScores('analytics:products:sales', 0, limit - 1, {
+                REV: true
+            });
+
+            const products = [];
+
+            for (const item of productIdsWithScores) {
+                const productId = item.value;
+                const sales = item.score;
+
+                const product = await Product.findById(productId).select('name price images');
+                if (product) {
+                    products.push({
+                        product,
+                        sales,
+                    });
+                }
+            }
+
+            if (products.length > 0) return products;
+            // Fall through if no products found
+        } catch (error) {
+            console.error('Error getting best sellers from Redis:', error);
+            // Fall through to database fallback
+        }
+    }
+
+    // Fallback to database
+    console.log('⚠️  Using database fallback for best sellers (Redis unavailable)');
     try {
-        const productIdsWithScores = await redis.zRangeWithScores('analytics:products:sales', 0, limit - 1, {
-            REV: true
-        });
+        // Aggregate sales from Order items
+        const topSellers = await Order.aggregate([
+            {
+                $match: { paymentStatus: 'paid' }
+            },
+            {
+                $unwind: '$items'
+            },
+            {
+                $group: {
+                    _id: '$items.product',
+                    sales: { $sum: '$items.quantity' }
+                }
+            },
+            {
+                $sort: { sales: -1 }
+            },
+            {
+                $limit: limit
+            }
+        ]);
 
         const products = [];
-
-        for (const item of productIdsWithScores) {
-            const productId = item.value;
-            const sales = item.score;
-
-            const product = await Product.findById(productId).select('name price images');
+        for (const item of topSellers) {
+            const product = await Product.findById(item._id).select('name price images');
             if (product) {
                 products.push({
                     product,
-                    sales,
+                    sales: item.sales,
                 });
             }
         }
 
         return products;
     } catch (error) {
-        console.error('Error getting best sellers:', error);
+        console.error('Error getting best sellers from database:', error);
         return [];
     }
 };
