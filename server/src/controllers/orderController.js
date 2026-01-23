@@ -372,6 +372,10 @@ export const confirmCodOrder = catchAsync(async (req, res, next) => {
     // INVALIDATE REDIS CACHE
     await cache.del(`cart:user:${userId}`);
 
+    // Populate user details for notifications
+    await order.populate('user', 'name email');
+    await order.populate('items.product', 'name images');
+
     // Send In-App Notification
     await sendNotification(
         userId,

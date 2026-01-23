@@ -89,6 +89,9 @@ const Navbar = () => {
 
   const { socket, isConnected } = useSocket();
 
+  // Prevent duplicate toasts (both Navbar and Dashboard can listen)
+  const lastNotificationIdRef = useRef(null);
+
   // Listen for Real-Time Notifications
   useEffect(() => {
     if (socket && isConnected && user?._id) {
@@ -96,6 +99,13 @@ const Navbar = () => {
       socket.emit('join:user', user._id);
 
       const handleNewNotification = (notification) => {
+        // Prevent duplicate toast if same notification already shown
+        if (lastNotificationIdRef.current === notification._id) {
+          console.log('⏭️ Skipping duplicate notification toast');
+          return;
+        }
+        lastNotificationIdRef.current = notification._id;
+
         // Invalidate cache to refresh list
         dispatch(notificationApi.util.invalidateTags(['Notifications', 'UnreadCount']));
 

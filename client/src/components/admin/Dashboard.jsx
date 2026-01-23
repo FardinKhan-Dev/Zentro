@@ -1,7 +1,12 @@
 import { useGetAdminStatsQuery, useGetSalesAnalyticsQuery, useGetProductAnalyticsQuery } from '../../features/admin/adminApi';
 import { format, subDays } from 'date-fns';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { FiUsers, FiBox, FiShoppingCart, FiActivity } from 'react-icons/fi';
+import { useSocket } from '../../hooks/useSocket';
+import { useAuth } from '../../hooks/useAuth';
+import { notificationApi } from '../../features/notifications/notificationApi';
+import toast from 'react-hot-toast';
 import StatsCard from './widgets/StatsCard';
 import SalesChart from './widgets/SalesChart';
 import RecentOrdersTable from './widgets/RecentOrdersTable';
@@ -9,7 +14,11 @@ import TopProductsList from './widgets/TopProductsList';
 import ProductViewsChart from './widgets/ProductViewsChart';
 
 const Dashboard = () => {
-    const { data: stats, isLoading: statsLoading } = useGetAdminStatsQuery();
+    const dispatch = useDispatch();
+    const { user } = useAuth();
+    const { socket, isConnected } = useSocket();
+
+    const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetAdminStatsQuery();
     const { data: productAnalytics, isLoading: productLoading } = useGetProductAnalyticsQuery();
     const [timeRange, setTimeRange] = useState('weekly'); // 'weekly' or 'monthly'
 
@@ -18,6 +27,45 @@ const Dashboard = () => {
     const startDate = format(subDays(new Date(), timeRange === 'weekly' ? 7 : 30), 'yyyy-MM-dd');
 
     const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery({ startDate, endDate });
+
+    // 🔔 Listen for Real-Time Notifications (Admin)
+    useEffect(() => {
+        if (socket && isConnected && user?._id) {
+            // Join admin's user room
+            socket.emit('join:user', user._id);
+            console.log(`📢 Admin joined Socket.IO room: user:${user._id}`);
+
+            const handleNewNotification = (notification) => {
+                console.log('🔔 Admin received notification:', notification);
+
+                // Invalidate cache to refresh notification list
+                dispatch(notificationApi.util.invalidateTags(['Notifications', 'UnreadCount']));
+
+                // Show Toast with sound
+                toast(notification.title, {
+                    icon: notification.type === 'order' ? '💰' : '🔔',
+                    duration: 5000,
+                    position: 'top-right',
+                    style: {
+                        background: '#10B981',
+                        color: '#fff',
+                        fontWeight: 'bold'
+                    }
+                });
+
+                // Refetch stats if it's an order notification
+                if (notification.type === 'order') {
+                    refetchStats();
+                }
+            };
+
+            socket.on('notification:new', handleNewNotification);
+
+            return () => {
+                socket.off('notification:new', handleNewNotification);
+            };
+        }
+    }, [socket, isConnected, user, dispatch, refetchStats]);
 
     if (statsLoading || salesLoading || productLoading) {
         return (

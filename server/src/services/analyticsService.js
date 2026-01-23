@@ -316,11 +316,11 @@ export const getBestSellingProducts = async (limit = 10) => {
             {
                 $group: {
                     _id: '$items.product',
-                    sales: { $sum: '$items.quantity' }
+                    soldQuantity: { $sum: '$items.quantity' }
                 }
             },
             {
-                $sort: { sales: -1 }
+                $sort: { soldQuantity: -1 }
             },
             {
                 $limit: limit
@@ -333,7 +333,8 @@ export const getBestSellingProducts = async (limit = 10) => {
             if (product) {
                 products.push({
                     product,
-                    sales: item.sales,
+                    sales: item.soldQuantity,
+                    soldQuantity: item.soldQuantity  // Add both for compatibility
                 });
             }
         }

@@ -3,7 +3,10 @@ import React from 'react';
 const TopProductsList = ({ products }) => {
     // Mock percentages for visualization if not provided
     const getPercentage = (sold) => {
-        const max = products?.[0]?.soldQuantity || 100;
+        // Safety check for undefined/null values
+        if (!sold || !products || products.length === 0) return 0;
+
+        const max = products[0]?.soldQuantity || products[0]?.sales || 100;
         return Math.min(Math.round((sold / max) * 100), 100);
     };
 
@@ -12,7 +15,9 @@ const TopProductsList = ({ products }) => {
     return (
         <div className="space-y-6">
             {products?.slice(0, 5).map((item, index) => {
-                const percentage = getPercentage(item.soldQuantity);
+                // Use soldQuantity or sales as fallback
+                const soldQuantity = item.soldQuantity || item.sales || 0;
+                const percentage = getPercentage(soldQuantity);
                 const color = colors[index % colors.length];
 
                 return (
