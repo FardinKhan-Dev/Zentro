@@ -22,6 +22,12 @@ export {
  */
 export const addEmailJob = async (type, data) => {
     try {
+        // Skip if Redis is disabled
+        if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+            console.log(`⚠️  Email job skipped (Redis disabled): ${type}`);
+            return null;
+        }
+
         const emailQueue = getEmailQueue();
         const job = await emailQueue.add(
             type,
@@ -39,7 +45,8 @@ export const addEmailJob = async (type, data) => {
         return job;
     } catch (error) {
         console.error(`✗ Failed to add email job (${type}):`, error.message);
-        throw error;
+        // Don't throw - return null to prevent blocking
+        return null;
     }
 };
 
@@ -95,6 +102,12 @@ export const addOrderCancellationEmailJob = async (email, orderDetails, reason) 
  */
 export const addAnalyticsJob = async (type, data) => {
     try {
+        // Skip if Redis is disabled
+        if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+            console.log(`⚠️  Analytics job skipped (Redis disabled): ${type}`);
+            return null;
+        }
+
         const analyticsQueue = getAnalyticsQueue();
         const job = await analyticsQueue.add(type, {
             type,
@@ -106,7 +119,7 @@ export const addAnalyticsJob = async (type, data) => {
         return job;
     } catch (error) {
         console.error(`✗ Failed to add analytics job (${type}):`, error.message);
-        throw error;
+        return null;
     }
 };
 
@@ -122,6 +135,12 @@ import { getSMSQueue } from '../jobs/definitions/smsQueue.js';
  */
 export const addSMSJob = async (phoneNumber, message) => {
     try {
+        // Skip if Redis is disabled
+        if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+            console.log(`⚠️  SMS job skipped (Redis disabled) for ${phoneNumber}`);
+            return null;
+        }
+
         const smsQueue = getSMSQueue();
         const job = await smsQueue.add('sms', {
             phoneNumber,
@@ -133,7 +152,7 @@ export const addSMSJob = async (phoneNumber, message) => {
         return job;
     } catch (error) {
         console.error(`✗ Failed to add SMS job:`, error.message);
-        throw error; // Or return null if we don't want to block
+        return null;
     }
 };
 
