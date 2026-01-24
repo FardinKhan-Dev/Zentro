@@ -2,11 +2,6 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ProductViewsChart = ({ data = [] }) => {
-    // Debug: Log received data
-    console.log('📊 ProductViewsChart received data:', data);
-
-    // Transform data for chart if needed, or use directly
-    // Assuming data is array of { product: { name: '...' }, views: 123 }
     const chartData = data.slice(0, 7).map(item => {
         const productName = item.product?.name || item.name || 'Unknown Product';
         const truncatedName = productName.length > 10
@@ -18,8 +13,6 @@ const ProductViewsChart = ({ data = [] }) => {
             views: item.views || 0
         };
     });
-
-    console.log('📊 Transformed chartData:', chartData);
 
     if (chartData.length === 0) {
         return (
