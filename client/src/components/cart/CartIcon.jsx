@@ -28,7 +28,7 @@ const CartIcon = () => {
             {/* Badge */}
             {itemCount > 0 && (
                 <span
-                    className="absolute top-0 right-0 flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-semibold text-white bg-green-500 rounded-full px-1 shadow-sm animate-bounce-in"
+                    className="absolute top-0 right-0 flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-semibold text-white bg-green-600 rounded-full px-1 shadow-sm animate-bounce-in"
                     aria-label={`${itemCount} items in cart`}
                 >
                     {itemCount > 99 ? '99+' : itemCount}

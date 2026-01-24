@@ -381,7 +381,7 @@ const AdminProfile = () => {
                     ) : (
                         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Password is set and secure</span>
                             </div>
                             <span className="text-xs text-gray-500 dark:text-gray-500">Last changed recently</span>

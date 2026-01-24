@@ -71,7 +71,7 @@ const OrderConfirmation = () => {
                             damping: 20,
                             delay: 0.1
                         }}
-                        className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
+                        className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
                     >
                         <FiCheck className="w-12 h-12 text-white" strokeWidth={3} />
                     </motion.div>
@@ -92,10 +92,10 @@ const OrderConfirmation = () => {
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-6">Order Status</h3>
                         <div className="relative">
                             <div className="absolute top-1/2 left-4 right-4 h-1 bg-gray-200 -translate-y-1/2 rounded-full" />
-                            <div className="absolute top-1/2 left-4 w-[10%] h-1 bg-green-500 -translate-y-1/2 rounded-full" />
+                            <div className="absolute top-1/2 left-4 w-[10%] h-1 bg-green-600 -translate-y-1/2 rounded-full" />
                             <div className="relative flex justify-between">
                                 <div className="flex flex-col items-center gap-2">
-                                    <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center ring-4 ring-white z-10 shadow-sm">
+                                    <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center ring-4 ring-white z-10 shadow-sm">
                                         <FiCheck size={16} />
                                     </div>
                                     <span className="text-xs font-bold text-green-600">Confirmed</span>
@@ -179,7 +179,7 @@ const OrderConfirmation = () => {
                                     {order.shippingAddress.country}
                                 </p>
                                 <p className="text-gray-600 dark:text-gray-400 text-sm mt-3 flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                                    <span className="w-1.5 h-1.5 bg-green-600 rounded-full" />
                                     Standard Shipping (5-7 Business Days)
                                 </p>
                             </div>

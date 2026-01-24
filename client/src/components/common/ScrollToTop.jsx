@@ -22,7 +22,7 @@ const ScrollToTop = () => {
             animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.8 }}
             transition={{ duration: 0.3 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-green-500 text-gray-900 dark:text-gray-200 rounded-full shadow-lg hover:bg-[#9cdb8f] transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+            className="fixed bottom-8 right-8 z-50 w-12 h-12 bg-green-600 text-gray-900 dark:text-gray-200 rounded-full shadow-lg hover:bg-[#9cdb8f] transition-all duration-300 hover:scale-110 flex items-center justify-center group"
             aria-label="Scroll to top"
             style={{ pointerEvents: isVisible ? 'auto' : 'none' }}
         >

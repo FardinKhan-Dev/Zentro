@@ -52,7 +52,7 @@ const ProductDetailsSection = ({ product }) => {
                             className="bg-linear-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 border border-green-100 dark:border-gray-600 shadow-sm hover:shadow-lg transition-shadow"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-green-500 rounded-xl text-white">
+                                <div className="p-3 bg-green-600 rounded-xl text-white">
                                     {featureIcons[feature] || <FaLeaf className="w-6 h-6" />}
                                 </div>
                                 <p className="font-semibold text-gray-900 dark:text-white text-sm md:text-base">
