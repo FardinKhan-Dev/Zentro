@@ -102,7 +102,7 @@ const ProductCard = ({ product, highlight = false }) => {
                             }
                         }}
                         disabled={stock === 0 || isLoading}
-                        className="flex-[1.5] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#2E7D32] hover:bg-[#1b5e20] dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="flex-[1.5] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[#2E7D32] hover:bg-[#1b5e20] dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         <span className="text-sm truncate">Buy Now</span>
                         <FiArrowRight className="w-4 h-4 shrink-0" />
