@@ -8,6 +8,11 @@ let aiQueue;
  * Handles AI-related background jobs (description generation, content enhancement)
  */
 export const getAIQueue = () => {
+    // Don't create queue if Redis is disabled
+    if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+        return null;
+    }
+
     if (aiQueue) return aiQueue;
 
     aiQueue = new Queue('ai', {

@@ -8,6 +8,11 @@ let emailQueue;
  * This prevents Redis connection errors in test environment
  */
 export const getEmailQueue = () => {
+  // Don't create queue if Redis is disabled
+  if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+    return null;
+  }
+
   if (!emailQueue) {
     emailQueue = new Queue('email', {
       connection,

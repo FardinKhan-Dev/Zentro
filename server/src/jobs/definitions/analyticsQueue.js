@@ -8,6 +8,11 @@ let analyticsQueue;
  * This is a placeholder for Phase 6 implementation
  */
 export const getAnalyticsQueue = () => {
+    // Don't create queue if Redis is disabled
+    if (process.env.DISABLE_REDIS === 'true' || process.env.DISABLE_REDIS === '1') {
+        return null;
+    }
+
     if (!analyticsQueue) {
         analyticsQueue = new Queue('analytics', {
             connection,
