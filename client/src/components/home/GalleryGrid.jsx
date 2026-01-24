@@ -13,7 +13,7 @@ const GalleryGrid = () => {
         { url: 'https://simpolo-web.s3.ap-south-1.amazonaws.com/uploads/media/blog/Minimalist-Green-Escape-Terrace-Garden-Design.jpg?w=600&h=400&fit=crop', title: 'Terrace Garden' },
         { url: 'https://img.pikbest.com/wp/202405/lush-3d-visualization-of-a-indoor-garden-and-living-space_9834323.jpg!w700wp?w=600&h=400&fit=crop', title: 'Indoor Garden' },
         { url: 'https://f7e5m2b4.delivery.rocketcdn.me/wp-content/uploads/2015/01/Contemporary-garden-design-Ideas-and-Tips-www.homeworlddesign.-com-0.jpg?w=600&h=400&fit=crop', title: 'Contemporary Design' },
-        { url: 'https://miro.medium.com/0*kNyMwekJ5VBMiywi.jpg?w=600&h=400&fit=crop', title: 'Outdoor Space' },
+        { url: 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=600&q=80', title: 'Outdoor Space' },
     ];
 
     return (

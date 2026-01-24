@@ -114,6 +114,10 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Middleware
 app.use(helmet());
+// Add Cross-Origin policies for security (Best Practices)
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
+app.use(helmet.crossOriginOpenerPolicy({ policy: "same-origin-allow-popups" }));
+
 // Request logging with Pino
 app.use(pinoHttp({
   logger,
@@ -129,10 +133,6 @@ app.use(pinoHttp({
       statusCode: res.statusCode,
     }),
   },
-  // Prevent logging of health checks to keep logs clean
-  // autoLogging: {
-  //   ignore: (req) => req.url === '/health',
-  // },
 }));
 
 // Content Security Policy: restrict resources to trusted origins
@@ -146,10 +146,19 @@ app.use(
         "'self'",
         process.env.CLIENT_URL || 'http://localhost:5173',
         process.env.API_URL || 'http://localhost:5000',
+        "https://zentro-cyan.vercel.app",
+        "https://zentro-e8ga.onrender.com"
       ],
-      imgSrc: ["'self'", 'data:', (process.env.CLOUDINARY_CLOUD_NAME ? `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}` : "'self'")],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      fontSrc: ["'self'", 'data:'],
+      imgSrc: [
+        "'self'",
+        'data:',
+        "https://res.cloudinary.com",
+        "https://images.unsplash.com",
+        "https://i.pinimg.com",
+        (process.env.CLOUDINARY_CLOUD_NAME ? `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}` : "'self'")
+      ],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", 'data:', "https://fonts.gstatic.com"],
     },
   })
 );
