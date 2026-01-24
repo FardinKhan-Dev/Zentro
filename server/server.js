@@ -208,7 +208,11 @@ if (process.env.NODE_ENV !== 'test') {
   logger.info('Test mode: skipping express-mongo-sanitize middleware');
 }
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:5173',
+    'https://zentro-cyan.vercel.app',
+    'https://zentro-e8ga.onrender.com'
+  ],
   credentials: true,
 }));
 

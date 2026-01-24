@@ -106,7 +106,7 @@ const Home = () => {
                         <img src={tip.icon} alt="" className="w-10 h-10 object-contain" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{tip.title}</h4>
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white">{tip.title}</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 max-w-xs">{tip.desc}</p>
                       </div>
                     </div>
