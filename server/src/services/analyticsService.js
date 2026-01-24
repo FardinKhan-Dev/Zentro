@@ -206,17 +206,35 @@ export const getTotalSalesMetrics = async () => {
  */
 export const trackProductView = async (productId) => {
     const redis = getRedisClient();
-    if (!redis) return;
 
+    if (redis) {
+        try {
+            await redis.zIncrBy('analytics:products:views', 1, productId.toString());
+
+            // Also track daily views
+            const date = new Date().toISOString().split('T')[0];
+            await redis.hIncrBy(`analytics:products:views:${date}`, productId.toString(), 1);
+            await redis.expire(`analytics:products:views:${date}`, 90 * 24 * 60 * 60);
+            return;
+        } catch (error) {
+            console.error('Error tracking product view in Redis:', error);
+            // Fall through to database fallback
+        }
+    }
+
+    // Database fallback when Redis unavailable
     try {
-        await redis.zIncrBy('analytics:products:views', 1, productId.toString());
+        const ProductView = (await import('../models/ProductView.js')).default;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        // Also track daily views
-        const date = new Date().toISOString().split('T')[0];
-        await redis.hIncrBy(`analytics:products:views:${date}`, productId.toString(), 1);
-        await redis.expire(`analytics:products:views:${date}`, 90 * 24 * 60 * 60);
+        await ProductView.findOneAndUpdate(
+            { product: productId, date: today },
+            { $inc: { views: 1 } },
+            { upsert: true, new: true }
+        );
     } catch (error) {
-        console.error('Error tracking product view:', error);
+        console.error('Error tracking product view in database:', error);
     }
 };
 
@@ -261,9 +279,47 @@ export const getTopViewedProducts = async (limit = 10) => {
         }
     }
 
-    // Fallback: Return empty array (views not tracked without Redis)
-    console.log('⚠️  Product views not available (Redis disabled)');
-    return [];
+    // Database fallback: Aggregate views from last 30 days
+    console.log('⚠️  Using database fallback for product views (Redis unavailable)');
+    try {
+        const ProductView = (await import('../models/ProductView.js')).default;
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const topViews = await ProductView.aggregate([
+            {
+                $match: { date: { $gte: thirtyDaysAgo } }
+            },
+            {
+                $group: {
+                    _id: '$product',
+                    totalViews: { $sum: '$views' }
+                }
+            },
+            {
+                $sort: { totalViews: -1 }
+            },
+            {
+                $limit: limit
+            }
+        ]);
+
+        const products = [];
+        for (const item of topViews) {
+            const product = await Product.findById(item._id).select('name price images');
+            if (product) {
+                products.push({
+                    product,
+                    views: item.totalViews
+                });
+            }
+        }
+
+        return products;
+    } catch (error) {
+        console.error('Error getting top viewed products from database:', error);
+        return [];
+    }
 };
 
 /**
