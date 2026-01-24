@@ -9,7 +9,7 @@ const HeroSection = () => {
             {/* Background Image */}
             <div
                 className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat bg-fixed"
-                style={{ backgroundImage: "url('/Hero-BG.jpg')" }}
+                style={{ backgroundImage: "url('/Hero-BG.webp')" }}
             >
                 {/* Gradient Overlay for Readability */}
                 <div className="absolute inset-0 bg-black/40 dark:bg-black/60 bg-linear-to-t from-black via-transparent to-black/30" />
