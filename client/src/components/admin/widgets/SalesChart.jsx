@@ -11,8 +11,6 @@ import {
 import { format } from 'date-fns';
 
 const SalesChart = ({ data, timeRange, onTimeRangeChange }) => {
-    console.log('📊 SalesChart received data:', data);
-    console.log('📊 Last 3 dates:', data?.slice(-3));
 
     return (
         <div className="h-full flex flex-col">

@@ -81,7 +81,12 @@ export const getSalesData = async (startDate, endDate) => {
     console.log('⚠️  Using database fallback for sales data (Redis unavailable)');
     try {
         const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0); // Start of day
+
         const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // End of day - CRITICAL for including today's orders!
+
+        console.log('📅 Querying orders from', start, 'to', end);
 
         // Query database for orders in date range
         const orders = await Order.aggregate([

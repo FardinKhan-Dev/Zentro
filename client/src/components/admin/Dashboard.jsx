@@ -22,13 +22,8 @@ const Dashboard = () => {
     const { data: productAnalytics, isLoading: productLoading } = useGetProductAnalyticsQuery();
     const [timeRange, setTimeRange] = useState('weekly'); // 'weekly' or 'monthly'
 
-    // Calculate date range based on selection
-    // For weekly: last 7 days INCLUDING today (8 total days)
-    // For monthly: last 30 days INCLUDING today (31 total days)
     const endDate = format(new Date(), 'yyyy-MM-dd');
     const startDate = format(subDays(new Date(), timeRange === 'weekly' ? 7 : 30), 'yyyy-MM-dd');
-
-    console.log('📅 Sales Chart Date Range:', { startDate, endDate, timeRange });
 
     const { data: salesData, isLoading: salesLoading } = useGetSalesAnalyticsQuery({ startDate, endDate });
 
