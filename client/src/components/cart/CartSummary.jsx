@@ -46,7 +46,7 @@ const CartSummary = ({ cart, itemCount, onClose }) => {
                 <button
                     onClick={handleCheckout}
                     disabled={itemCount === 0}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white py-4 px-6 rounded-lg font-semibold uppercase tracking-wide disabled:bg-gray-300 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white py-4 px-6 rounded-lg font-semibold uppercase tracking-wide disabled:bg-gray-300 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
                 >
                     Proceed to Checkout
                 </button>

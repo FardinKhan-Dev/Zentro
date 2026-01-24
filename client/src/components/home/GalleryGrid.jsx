@@ -3,7 +3,7 @@ import React from 'react';
 const GalleryGrid = () => {
     // Split images into two rows for alternating scroll
     const topRowImages = [
-        { url: 'https://st.hzcdn.com/simgs/e181465d087e5714_14-0300/home-design.jpg?w=600&h=400&fit=crop', title: 'Modern Living' },
+        { url: 'https://images.unsplash.com/photo-1484154218962-a1c002085d2f?w=600&q=80', title: 'Modern Living' },
         { url: 'https://images.unsplash.com/photo-1470058869958-2a77ade41c02?w=600&h=400&fit=crop', title: 'Cozy Spaces' },
         { url: 'https://images.unsplash.com/photo-1545241047-6083a3684587?w=600&h=400&fit=crop', title: 'Green Corners' },
         { url: 'https://i.pinimg.com/736x/89/2c/aa/892caa5a0e7757399ecec26aef20c8b2.jpg?w=600&h=400&fit=crop', title: 'Bright Rooms' },

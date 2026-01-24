@@ -70,7 +70,7 @@ const CartDrawer = () => {
                                             handleClose();
                                             dispatch(openAuthDrawer('login'));
                                         }}
-                                        className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                                        className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
                                     >
                                         Login Now
                                     </button>
@@ -91,7 +91,7 @@ const CartDrawer = () => {
                             </svg>
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Your cart is empty</h3>
                             <p className="text-gray-600 dark:text-gray-400 mb-8">Add items to get started</p>
-                            <button onClick={handleClose} className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                            <button onClick={handleClose} className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors">
                                 Continue Shopping
                             </button>
                         </div>

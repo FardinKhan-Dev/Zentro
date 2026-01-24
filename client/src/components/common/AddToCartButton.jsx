@@ -75,9 +75,9 @@ const AddToCartButton = ({ productId, initialQuantity = 1, quantity, className =
     const baseStyles = "relative font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 
     const variants = {
-        primary: "bg-green-500 hover:bg-green-600 text-white px-6 py-3 shadow-md hover:shadow-lg",
+        primary: "bg-green-600 hover:bg-green-700 text-white px-6 py-3 shadow-md hover:shadow-lg",
         secondary: "border-2 border-green-500 text-green-500 hover:bg-green-50 px-6 py-3",
-        small: "bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm",
+        small: "bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm",
         ghost: "" // No default styles, fully custom via className
     };
 
