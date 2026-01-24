@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useGetMeQuery, useAddAddressMutation } from '../../features/auth/authApi';
 import AddressForm from './AddressForm';
-import { FiPlus, FiCheckCircle, FiTrash2, FiMapPin } from 'react-icons/fi';
+import { FiPlus } from '@react-icons/all-files/fi/FiPlus';
+import { FiCheckCircle } from '@react-icons/all-files/fi/FiCheckCircle';
+import { FiTrash2 } from '@react-icons/all-files/fi/FiTrash2';
+import { FiMapPin } from '@react-icons/all-files/fi/FiMapPin';
 import toast from 'react-hot-toast';
 
 /**

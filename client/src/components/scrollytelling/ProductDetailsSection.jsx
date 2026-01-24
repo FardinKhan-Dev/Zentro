@@ -1,6 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaLeaf, FaRecycle, FaSeedling, FaBook } from 'react-icons/fa';
+import { FaLeaf } from '@react-icons/all-files/fa/FaLeaf';
+import { FaRecycle } from '@react-icons/all-files/fa/FaRecycle';
+import { FaSeedling } from '@react-icons/all-files/fa/FaSeedling';
+import { FaBook } from '@react-icons/all-files/fa/FaBook';
 
 /**
  * ProductDetailsSection Component

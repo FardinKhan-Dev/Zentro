@@ -4,7 +4,10 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCreatePaymentIntentMutation, useVerifyPaymentMutation } from '../../features/payment/paymentApi';
 import { useGetOrderByIdQuery } from '../../features/orders/orderApi';
-import { FiLock, FiCreditCard, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
+import { FiLock } from '@react-icons/all-files/fi/FiLock';
+import { FiCreditCard } from '@react-icons/all-files/fi/FiCreditCard';
+import { FiAlertCircle } from '@react-icons/all-files/fi/FiAlertCircle';
+import { FiCheckCircle } from '@react-icons/all-files/fi/FiCheckCircle';
 import toast from 'react-hot-toast';
 
 // Initialize Stripe (replace with your publishable key)

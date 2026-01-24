@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { motion } from "framer-motion";
 import { MdOutlineTipsAndUpdates } from "react-icons/md";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight } from "@react-icons/all-files/fi/FiArrowRight";
 import {
   FeaturedProducts,
   GalleryGrid,

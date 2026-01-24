@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IoClose } from 'react-icons/io5';
+import { IoClose } from '@react-icons/all-files/io5/IoClose';
 import {
     closeAuthDrawer,
     selectAuthDrawerOpen,

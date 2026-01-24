@@ -3,7 +3,11 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCreatePaymentIntentMutation, useVerifyPaymentMutation } from '../../features/payment/paymentApi';
 import { useConfirmCodOrderMutation } from '../../features/orders/orderApi';
-import { FiLock, FiAlertCircle, FiCreditCard, FiTruck, FiCheckCircle } from 'react-icons/fi';
+import { FiLock } from '@react-icons/all-files/fi/FiLock';
+import { FiAlertCircle } from '@react-icons/all-files/fi/FiAlertCircle';
+import { FiCreditCard } from '@react-icons/all-files/fi/FiCreditCard';
+import { FiTruck } from '@react-icons/all-files/fi/FiTruck';
+import { FiCheckCircle } from '@react-icons/all-files/fi/FiCheckCircle';
 import { useTheme } from '../../context/ThemeContext';
 import toast from 'react-hot-toast';
 

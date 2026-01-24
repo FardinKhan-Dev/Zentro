@@ -1,7 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useUpdateProfileMutation, useChangePasswordMutation } from '../../features/auth/authApi';
-import { FiUser, FiMail, FiLock, FiCamera, FiSave, FiEdit2, FiX, FiPhone, FiUpload } from 'react-icons/fi';
+import { FiUser } from '@react-icons/all-files/fi/FiUser';
+import { FiMail } from '@react-icons/all-files/fi/FiMail';
+import { FiLock } from '@react-icons/all-files/fi/FiLock';
+import { FiCamera } from '@react-icons/all-files/fi/FiCamera';
+import { FiSave } from '@react-icons/all-files/fi/FiSave';
+import { FiEdit2 } from '@react-icons/all-files/fi/FiEdit2';
+import { FiX } from '@react-icons/all-files/fi/FiX';
+import { FiPhone } from '@react-icons/all-files/fi/FiPhone';
+import { FiUpload } from '@react-icons/all-files/fi/FiUpload';
 import toast from 'react-hot-toast';
 
 const AdminProfile = () => {
@@ -196,14 +204,14 @@ const AdminProfile = () => {
                                 )}
                             </div>
                             {!isEditingDetails && (
-                            <button
-                                onClick={() => setIsEditingDetails(true)}
-                                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                            >
-                                <FiEdit2 className="w-4 h-4 mr-2" />
-                                Edit Details
-                            </button>
-                        )}
+                                <button
+                                    onClick={() => setIsEditingDetails(true)}
+                                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-900 border border-gray-100 dark:border-white/10 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                                >
+                                    <FiEdit2 className="w-4 h-4 mr-2" />
+                                    Edit Details
+                                </button>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

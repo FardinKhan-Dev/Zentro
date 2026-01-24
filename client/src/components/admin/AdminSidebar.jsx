@@ -1,6 +1,12 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiGrid, FiBox, FiShoppingCart, FiUsers, FiPieChart, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiGrid } from '@react-icons/all-files/fi/FiGrid';
+import { FiBox } from '@react-icons/all-files/fi/FiBox';
+import { FiShoppingCart } from '@react-icons/all-files/fi/FiShoppingCart';
+import { FiUsers } from '@react-icons/all-files/fi/FiUsers';
+import { FiPieChart } from '@react-icons/all-files/fi/FiPieChart';
+import { FiSettings } from '@react-icons/all-files/fi/FiSettings';
+import { FiLogOut } from '@react-icons/all-files/fi/FiLogOut';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import { useLogoutMutation } from '../../features/auth/authApi';

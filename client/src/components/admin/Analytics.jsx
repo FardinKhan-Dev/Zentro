@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { useGetSalesAnalyticsQuery, useGetProductAnalyticsQuery, useGetUserAnalyticsQuery } from '../../features/admin/adminApi';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { format, subDays } from 'date-fns';
-import { FiDownload, FiCalendar, FiDollarSign, FiTrendingUp, FiAlertTriangle, FiPieChart, FiActivity, FiUsers } from 'react-icons/fi';
+import { FiDownload } from '@react-icons/all-files/fi/FiDownload';
+import { FiCalendar } from '@react-icons/all-files/fi/FiCalendar';
+import { FiDollarSign } from '@react-icons/all-files/fi/FiDollarSign';
+import { FiTrendingUp } from '@react-icons/all-files/fi/FiTrendingUp';
+import { FiAlertTriangle } from '@react-icons/all-files/fi/FiAlertTriangle';
+import { FiPieChart } from '@react-icons/all-files/fi/FiPieChart';
+import { FiActivity } from '@react-icons/all-files/fi/FiActivity';
+import { FiUsers } from '@react-icons/all-files/fi/FiUsers';
 import { toast } from 'react-hot-toast';
 
 

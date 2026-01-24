@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaStar } from 'react-icons/fa';
+import { FaStar } from '@react-icons/all-files/fa/FaStar';
 
 const RatingStars = ({ rating = 0, maxRating = 5, size = 'medium', showNumber = false, count }) => {
     const sizes = {

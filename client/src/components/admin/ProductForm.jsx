@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FiArrowLeft, FiSave, FiImage, FiCpu, FiTag, FiDollarSign, FiLayers, FiCheck, FiTrash2, FiUploadCloud } from 'react-icons/fi';
+import { FiArrowLeft } from '@react-icons/all-files/fi/FiArrowLeft';
+import { FiSave } from '@react-icons/all-files/fi/FiSave';
+import { FiImage } from '@react-icons/all-files/fi/FiImage';
+import { FiCpu } from '@react-icons/all-files/fi/FiCpu';
+import { FiTag } from '@react-icons/all-files/fi/FiTag';
+import { FiDollarSign } from '@react-icons/all-files/fi/FiDollarSign';
+import { FiLayers } from '@react-icons/all-files/fi/FiLayers';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiTrash2 } from '@react-icons/all-files/fi/FiTrash2';
+import { FiUploadCloud } from '@react-icons/all-files/fi/FiUploadCloud';
 import { toast } from 'react-hot-toast';
 import { useGetProductQuery, useCreateProductMutation, useUpdateProductMutation } from '../../features/products/productApi';
 

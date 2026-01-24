@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaCheckCircle, FaRecycle, FaHeart } from 'react-icons/fa';
+import { FaCheckCircle } from '@react-icons/all-files/fa/FaCheckCircle';
+import { FaRecycle } from '@react-icons/all-files/fa/FaRecycle';
+import { FaHeart } from '@react-icons/all-files/fa/FaHeart';
 
 /**
  * ProductQualitySection Component

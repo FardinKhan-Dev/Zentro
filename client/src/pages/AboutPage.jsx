@@ -1,6 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiUsers, FiPackage, FiGlobe, FiAward, FiArrowRight } from 'react-icons/fi';
+import { FiUsers } from '@react-icons/all-files/fi/FiUsers';
+import { FiPackage } from '@react-icons/all-files/fi/FiPackage';
+import { FiGlobe } from '@react-icons/all-files/fi/FiGlobe';
+import { FiAward } from '@react-icons/all-files/fi/FiAward';
+import { FiArrowRight } from '@react-icons/all-files/fi/FiArrowRight';
 import { Link } from 'react-router-dom';
 
 const AboutPage = () => {

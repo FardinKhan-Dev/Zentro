@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHeart, FiShoppingCart, FiArrowRight } from 'react-icons/fi';
+import { FiHeart } from '@react-icons/all-files/fi/FiHeart';
+import { FiShoppingCart } from '@react-icons/all-files/fi/FiShoppingCart';
+import { FiArrowRight } from '@react-icons/all-files/fi/FiArrowRight';
 import RatingStars from '../common/RatingStars';
 import { useAddToCartMutation } from '../../features/cart/cartApi';
 import AddToCartButton from '../common/AddToCartButton';

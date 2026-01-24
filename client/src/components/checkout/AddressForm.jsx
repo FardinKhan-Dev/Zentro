@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { FiGlobe, FiMapPin, FiPhone, FiCheck, FiLoader } from 'react-icons/fi';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { FiGlobe } from '@react-icons/all-files/fi/FiGlobe';
+import { FiMapPin } from '@react-icons/all-files/fi/FiMapPin';
+import { FiPhone } from '@react-icons/all-files/fi/FiPhone';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiLoader } from '@react-icons/all-files/fi/FiLoader';
 import toast from 'react-hot-toast';
 
 // Validation Schema
-const schema = yup.object().shape({
-    phoneNumber: yup
+const schema = z.object({
+    phoneNumber: z
         .string()
-        .required('Mobile number is required')
-        .matches(/^[0-9]{10}$/, 'Must be a valid 10-digit number'),
-    zipCode: yup
+        .min(1, 'Mobile number is required')
+        .regex(/^[0-9]{10}$/, 'Must be a valid 10-digit number'),
+    zipCode: z
         .string()
-        .required('Pincode is required')
-        .matches(/^[0-9]{6}$/, 'Must be a valid 6-digit pincode'),
-    country: yup.string().required('Country is required'),
-    city: yup.string().required('City is required'),
-    state: yup.string().required('State is required'),
-    street: yup.string().required('Street address is required'),
-    isDefault: yup.boolean(),
+        .min(1, 'Pincode is required')
+        .regex(/^[0-9]{6}$/, 'Must be a valid 6-digit pincode'),
+    country: z.string().min(1, 'Country is required'),
+    city: z.string().min(1, 'City is required'),
+    state: z.string().min(1, 'State is required'),
+    street: z.string().min(1, 'Street address is required'),
+    isDefault: z.boolean().optional(),
 });
 
 const AddressForm = ({ initialData = {}, onSubmit, isSaving = false, submitLabel = 'Deliver Here' }) => {
@@ -32,7 +36,7 @@ const AddressForm = ({ initialData = {}, onSubmit, isSaving = false, submitLabel
         watch,
         formState: { errors },
     } = useForm({
-        resolver: yupResolver(schema),
+        resolver: zodResolver(schema),
         defaultValues: {
             phoneNumber: initialData.phone || initialData.phoneNumber || '',
             zipCode: initialData.zipCode || '',

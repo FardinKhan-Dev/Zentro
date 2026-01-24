@@ -2,7 +2,7 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useGetCartQuery } from '../../features/cart/cartApi';
 import { toggleCartDrawer } from '../../features/cart/cartSlice';
-import { FiShoppingCart } from 'react-icons/fi';
+import { FiShoppingCart } from '@react-icons/all-files/fi/FiShoppingCart';
 /**
  * CartIcon Component
  * Cart button for navbar with item count badge

@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiCheck, FiX, FiPackage, FiBarChart2 } from 'react-icons/fi';
+import { FiPlus } from '@react-icons/all-files/fi/FiPlus';
+import { FiEdit2 } from '@react-icons/all-files/fi/FiEdit2';
+import { FiTrash2 } from '@react-icons/all-files/fi/FiTrash2';
+import { FiSearch } from '@react-icons/all-files/fi/FiSearch';
+import { FiFilter } from '@react-icons/all-files/fi/FiFilter';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiX } from '@react-icons/all-files/fi/FiX';
+import { FiPackage } from '@react-icons/all-files/fi/FiPackage';
+import { FiBarChart2 } from '@react-icons/all-files/fi/FiBarChart2';
 import { useGetProductsQuery, useDeleteProductMutation } from '../../features/products/productApi';
 import { toast } from 'react-hot-toast';
 import ConfirmationModal from '../common/ConfirmationModal';

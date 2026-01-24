@@ -8,7 +8,14 @@ import Button from '../common/Button';
 import AddToCartButton from '../common/AddToCartButton';
 import { useAddToCartMutation } from '../../features/cart/cartApi';
 
-import { FiArrowLeft, FiShoppingBag, FiTruck, FiShield, FiSun, FiArrowRight, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiArrowLeft } from '@react-icons/all-files/fi/FiArrowLeft';
+import { FiShoppingBag } from '@react-icons/all-files/fi/FiShoppingBag';
+import { FiTruck } from '@react-icons/all-files/fi/FiTruck';
+import { FiShield } from '@react-icons/all-files/fi/FiShield';
+import { FiSun } from '@react-icons/all-files/fi/FiSun';
+import { FiArrowRight } from '@react-icons/all-files/fi/FiArrowRight';
+import { FiTrash2 } from '@react-icons/all-files/fi/FiTrash2';
+import { FiEdit2 } from '@react-icons/all-files/fi/FiEdit2';
 import ReviewForm from '../reviews/ReviewForm';
 import ReviewList from '../reviews/ReviewList';
 import { useGetReviewsQuery } from '../../features/reviews/reviewApi';

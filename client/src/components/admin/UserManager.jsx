@@ -1,7 +1,20 @@
 import { useState } from 'react';
 import { useGetAllUsersQuery, useUpdateUserRoleMutation, useDeleteUserMutation } from '../../features/admin/adminApi';
 import { format } from 'date-fns';
-import { FiSearch, FiFilter, FiTrash2, FiEdit2, FiShield, FiUser, FiCheckCircle, FiXCircle, FiMail, FiLoader, FiUsers, FiUserCheck, FiUserPlus, FiX } from 'react-icons/fi';
+import { FiSearch } from '@react-icons/all-files/fi/FiSearch';
+import { FiFilter } from '@react-icons/all-files/fi/FiFilter';
+import { FiTrash2 } from '@react-icons/all-files/fi/FiTrash2';
+import { FiEdit2 } from '@react-icons/all-files/fi/FiEdit2';
+import { FiShield } from '@react-icons/all-files/fi/FiShield';
+import { FiUser } from '@react-icons/all-files/fi/FiUser';
+import { FiCheckCircle } from '@react-icons/all-files/fi/FiCheckCircle';
+import { FiXCircle } from '@react-icons/all-files/fi/FiXCircle';
+import { FiMail } from '@react-icons/all-files/fi/FiMail';
+import { FiLoader } from '@react-icons/all-files/fi/FiLoader';
+import { FiUsers } from '@react-icons/all-files/fi/FiUsers';
+import { FiUserCheck } from '@react-icons/all-files/fi/FiUserCheck';
+import { FiUserPlus } from '@react-icons/all-files/fi/FiUserPlus';
+import { FiX } from '@react-icons/all-files/fi/FiX';
 import { toast } from 'react-hot-toast';
 import ConfirmationModal from '../common/ConfirmationModal';
 

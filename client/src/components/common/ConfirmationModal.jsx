@@ -1,6 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiAlertTriangle, FiInfo, FiCheckCircle, FiX } from 'react-icons/fi';
+import { FiAlertTriangle } from '@react-icons/all-files/fi/FiAlertTriangle';
+import { FiInfo } from '@react-icons/all-files/fi/FiInfo';
+import { FiCheckCircle } from '@react-icons/all-files/fi/FiCheckCircle';
+import { FiX } from '@react-icons/all-files/fi/FiX';
 
 const ConfirmationModal = ({
     isOpen,

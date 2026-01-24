@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useGetPlatformSettingsQuery, useUpdatePlatformSettingsMutation } from '../../features/admin/adminApi';
-import { FiSave, FiLock, FiBell, FiGlobe, FiSmartphone, FiUsers, FiBox, FiEdit2, FiX, FiShield } from 'react-icons/fi';
+import { FiSave } from '@react-icons/all-files/fi/FiSave';
+import { FiLock } from '@react-icons/all-files/fi/FiLock';
+import { FiBell } from '@react-icons/all-files/fi/FiBell';
+import { FiGlobe } from '@react-icons/all-files/fi/FiGlobe';
+import { FiSmartphone } from '@react-icons/all-files/fi/FiSmartphone';
+import { FiUsers } from '@react-icons/all-files/fi/FiUsers';
+import { FiBox } from '@react-icons/all-files/fi/FiBox';
+import { FiEdit2 } from '@react-icons/all-files/fi/FiEdit2';
+import { FiX } from '@react-icons/all-files/fi/FiX';
+import { FiShield } from '@react-icons/all-files/fi/FiShield';
 import { toast } from 'react-hot-toast';
 
 const AdminSettings = () => {

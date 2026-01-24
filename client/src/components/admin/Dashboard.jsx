@@ -2,7 +2,10 @@ import { useGetAdminStatsQuery, useGetSalesAnalyticsQuery, useGetProductAnalytic
 import { format, subDays } from 'date-fns';
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { FiUsers, FiBox, FiShoppingCart, FiActivity } from 'react-icons/fi';
+import { FiUsers } from '@react-icons/all-files/fi/FiUsers';
+import { FiBox } from '@react-icons/all-files/fi/FiBox';
+import { FiShoppingCart } from '@react-icons/all-files/fi/FiShoppingCart';
+import { FiActivity } from '@react-icons/all-files/fi/FiActivity';
 import { useSocket } from '../../hooks/useSocket';
 import { useAuth } from '../../hooks/useAuth';
 import { notificationApi } from '../../features/notifications/notificationApi';

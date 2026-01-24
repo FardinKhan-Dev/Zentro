@@ -3,8 +3,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CiStar } from 'react-icons/ci';
+import { FiCamera } from '@react-icons/all-files/fi/FiCamera';
+import { FiX } from '@react-icons/all-files/fi/FiX';
 import { toast } from 'react-hot-toast';
-import { FiCamera, FiX } from 'react-icons/fi';
 import Button from '../common/Button';
 import { useCreateReviewMutation, useCheckReviewEligibilityQuery } from '../../features/reviews/reviewApi';
 

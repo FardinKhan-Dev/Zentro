@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useGetAllOrdersQuery, useUpdateOrderStatusMutation } from '../../features/admin/adminApi';
 import { format } from 'date-fns';
-import { FiSearch, FiFilter, FiDownload, FiX, FiChevronLeft, FiChevronRight, FiCheck, FiClock, FiTruck, FiPackage, FiAlertCircle, FiDollarSign } from 'react-icons/fi';
+import { FiSearch } from '@react-icons/all-files/fi/FiSearch';
+import { FiFilter } from '@react-icons/all-files/fi/FiFilter';
+import { FiDownload } from '@react-icons/all-files/fi/FiDownload';
+import { FiX } from '@react-icons/all-files/fi/FiX';
+import { FiChevronLeft } from '@react-icons/all-files/fi/FiChevronLeft';
+import { FiChevronRight } from '@react-icons/all-files/fi/FiChevronRight';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiClock } from '@react-icons/all-files/fi/FiClock';
+import { FiTruck } from '@react-icons/all-files/fi/FiTruck';
+import { FiPackage } from '@react-icons/all-files/fi/FiPackage';
+import { FiAlertCircle } from '@react-icons/all-files/fi/FiAlertCircle';
+import { FiDollarSign } from '@react-icons/all-files/fi/FiDollarSign';
 import { MdPendingActions } from "react-icons/md";
 import { toast } from 'react-hot-toast';
 

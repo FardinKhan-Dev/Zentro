@@ -5,7 +5,7 @@ import { useCreateOrderMutation } from '../../features/orders/orderApi';
 import ShippingForm from './ShippingForm';
 import OrderReview from './OrderReview';
 import PaymentStep from './PaymentStep';
-import { FiCheckCircle } from 'react-icons/fi';
+import { FiCheckCircle } from '@react-icons/all-files/fi/FiCheckCircle';
 
 /**
  * CheckoutPage - Multi-step checkout process

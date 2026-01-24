@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiMenu, FiBell, FiSearch, FiUser, FiLogOut, FiSettings, FiSun, FiMoon } from 'react-icons/fi';
+import { FiMenu } from '@react-icons/all-files/fi/FiMenu';
+import { FiBell } from '@react-icons/all-files/fi/FiBell';
+import { FiSearch } from '@react-icons/all-files/fi/FiSearch';
+import { FiUser } from '@react-icons/all-files/fi/FiUser';
+import { FiLogOut } from '@react-icons/all-files/fi/FiLogOut';
+import { FiSettings } from '@react-icons/all-files/fi/FiSettings';
+import { FiSun } from '@react-icons/all-files/fi/FiSun';
+import { FiMoon } from '@react-icons/all-files/fi/FiMoon';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import { Link, useNavigate } from 'react-router-dom';

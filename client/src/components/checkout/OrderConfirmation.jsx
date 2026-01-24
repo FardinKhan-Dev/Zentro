@@ -2,7 +2,13 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetOrderByIdQuery } from '../../features/orders/orderApi';
 import { motion } from 'framer-motion';
-import { FiCheck, FiPackage, FiTruck, FiMapPin, FiArrowRight, FiShoppingBag, FiCalendar } from 'react-icons/fi';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiPackage } from '@react-icons/all-files/fi/FiPackage';
+import { FiTruck } from '@react-icons/all-files/fi/FiTruck';
+import { FiMapPin } from '@react-icons/all-files/fi/FiMapPin';
+import { FiArrowRight } from '@react-icons/all-files/fi/FiArrowRight';
+import { FiShoppingBag } from '@react-icons/all-files/fi/FiShoppingBag';
+import { FiCalendar } from '@react-icons/all-files/fi/FiCalendar';
 
 /**
  * OrderConfirmation Component

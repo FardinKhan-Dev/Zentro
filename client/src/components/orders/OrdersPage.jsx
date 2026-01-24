@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiPackage, FiClock, FiCheck, FiTruck, FiX, FiArrowRight, FiShoppingBag, FiCalendar } from 'react-icons/fi';
+import { FiPackage } from '@react-icons/all-files/fi/FiPackage';
+import { FiClock } from '@react-icons/all-files/fi/FiClock';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiTruck } from '@react-icons/all-files/fi/FiTruck';
+import { FiX } from '@react-icons/all-files/fi/FiX';
+import { FiArrowRight } from '@react-icons/all-files/fi/FiArrowRight';
+import { FiShoppingBag } from '@react-icons/all-files/fi/FiShoppingBag';
+import { FiCalendar } from '@react-icons/all-files/fi/FiCalendar';
 import { useGetUserOrdersQuery } from '../../features/orders/orderApi';
 import { motion, AnimatePresence } from 'framer-motion';
 

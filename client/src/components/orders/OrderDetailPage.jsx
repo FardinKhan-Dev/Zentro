@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetOrderByIdQuery, useCancelOrderMutation } from '../../features/orders/orderApi';
-import { FiArrowLeft, FiPackage, FiTruck, FiMapPin, FiCreditCard, FiClock, FiAlertCircle, FiCheck, FiX, FiShoppingBag, FiInfo } from 'react-icons/fi';
+import { FiArrowLeft } from '@react-icons/all-files/fi/FiArrowLeft';
+import { FiPackage } from '@react-icons/all-files/fi/FiPackage';
+import { FiTruck } from '@react-icons/all-files/fi/FiTruck';
+import { FiMapPin } from '@react-icons/all-files/fi/FiMapPin';
+import { FiCreditCard } from '@react-icons/all-files/fi/FiCreditCard';
+import { FiClock } from '@react-icons/all-files/fi/FiClock';
+import { FiAlertCircle } from '@react-icons/all-files/fi/FiAlertCircle';
+import { FiCheck } from '@react-icons/all-files/fi/FiCheck';
+import { FiX } from '@react-icons/all-files/fi/FiX';
+import { FiShoppingBag } from '@react-icons/all-files/fi/FiShoppingBag';
+import { FiInfo } from '@react-icons/all-files/fi/FiInfo';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**

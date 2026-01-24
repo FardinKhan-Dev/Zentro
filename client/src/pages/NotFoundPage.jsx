@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FiHome, FiArrowLeft } from 'react-icons/fi';
+import { FiHome } from '@react-icons/all-files/fi/FiHome';
+import { FiArrowLeft } from '@react-icons/all-files/fi/FiArrowLeft';
 
 const NotFoundPage = () => {
     return (

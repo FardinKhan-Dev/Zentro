@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useGetProductsQuery } from '../../features/products/productApi';
 import ProductCard from './ProductCard';
-import { FiFilter, FiSearch, FiX } from 'react-icons/fi';
+import { FiFilter } from '@react-icons/all-files/fi/FiFilter';
+import { FiSearch } from '@react-icons/all-files/fi/FiSearch';
+import { FiX } from '@react-icons/all-files/fi/FiX';
 
 const ProductList = () => {
   const [filters, setFilters] = useState({

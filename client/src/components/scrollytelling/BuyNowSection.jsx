@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaTruck, FaUndo, FaShieldAlt } from 'react-icons/fa';
+import { FaTruck } from '@react-icons/all-files/fa/FaTruck';
+import { FaUndo } from '@react-icons/all-files/fa/FaUndo';
+import { FaShieldAlt } from '@react-icons/all-files/fa/FaShieldAlt';
 import AddToCartButton from '../common/AddToCartButton';
 
 /**
