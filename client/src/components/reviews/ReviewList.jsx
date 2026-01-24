@@ -67,9 +67,9 @@ const ReviewItem = ({ review }) => {
             <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                        <h3 className="font-semibold text-gray-900 dark:text-white truncate">
                             {review.user?.name || 'Deleted User'}
-                        </h4>
+                        </h3>
                         <div className="flex items-center gap-2 mt-1">
                             <div className="flex">
                                 {[...Array(5)].map((_, i) => (

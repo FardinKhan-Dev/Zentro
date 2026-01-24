@@ -292,7 +292,7 @@ const AdminSettings = () => {
                                             <item.icon className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h4 className="font-medium text-gray-900 dark:text-white">{item.title}</h4>
+                                            <h3 className="font-medium text-gray-900 dark:text-white">{item.title}</h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">{item.desc}</p>
                                         </div>
                                     </div>
@@ -336,7 +336,7 @@ const AdminSettings = () => {
                             <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-6 border border-gray-100 dark:border-white/5">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <h4 className="font-medium text-gray-900 dark:text-white">Two-Factor Authentication (2FA)</h4>
+                                        <h3 className="font-medium text-gray-900 dark:text-white">Two-Factor Authentication (2FA)</h3>
                                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Require 2FA for all admin accounts</p>
                                     </div>
                                     <label className={`relative inline-flex items-center ${isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>

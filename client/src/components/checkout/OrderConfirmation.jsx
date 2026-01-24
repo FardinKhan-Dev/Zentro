@@ -135,7 +135,7 @@ const OrderConfirmation = () => {
                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</h4>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</h3>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">Qty: {item.quantity} × ${item.price.toFixed(2)}</p>
                                         </div>
                                         <p className="font-bold text-gray-900 dark:text-white text-sm">${(item.price * item.quantity).toFixed(2)}</p>

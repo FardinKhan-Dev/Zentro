@@ -351,9 +351,9 @@ const ProductDetail = () => {
               {/* Admin Controls */}
               {user?.role === 'admin' && (
                 <div className="bg-red-50/50 p-4 rounded-2xl border border-dashed border-red-200 mt-4">
-                  <h4 className="font-bold text-red-900 mb-3 text-sm flex items-center gap-2">
+                  <h3 className="font-bold text-red-900 mb-3 text-sm flex items-center gap-2">
                     Admin Zone
-                  </h4>
+                  </h3>
                   <div className="flex gap-3">
                     <Link to={`/products/${product._id}/edit`} className="flex-1">
                       <Button variant="outline" size="medium" className="w-full bg-white hover:bg-red-50 border-red-200 text-red-700">
