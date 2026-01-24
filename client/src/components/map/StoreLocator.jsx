@@ -126,7 +126,7 @@ const StoreLocator = () => {
                                     <p className="text-sm text-gray-600 mb-2">{store.address}</p>
                                     <div className="flex justify-between items-center mt-2">
                                         <span className="text-xs text-gray-500 font-medium">{store.phone}</span>
-                                        <a href="#" className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-bold hover:bg-green-700 transition-colors">
+                                        <a href="#" className="text-xs bg-green-700 text-white px-3 py-1.5 rounded-full font-bold hover:bg-green-800 transition-colors">
                                             Go
                                         </a>
                                     </div>

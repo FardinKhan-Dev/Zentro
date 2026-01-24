@@ -337,7 +337,7 @@ const Navbar = () => {
                         </div>
 
                         {!n.isRead && (
-                          <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
+                          <div className="w-2 h-2 bg-green-700 rounded-full mt-2"></div>
                         )}
                       </div>
                     ))
@@ -524,7 +524,7 @@ const Navbar = () => {
                               </div>
                             </div>
                             {!n.isRead && (
-                              <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
+                              <div className="w-2 h-2 bg-green-700 rounded-full mt-2"></div>
                             )}
                           </div>
                         ))

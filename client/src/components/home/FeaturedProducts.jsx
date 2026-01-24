@@ -35,7 +35,7 @@ const FeaturedProducts = () => {
     <section className="px-6 md:px-12 max-w-7xl mx-auto mt-24 text-center">
       <div className="text-center mb-12">
         <div className="inline-block mb-4">
-          <span className="px-4 py-2 bg-white/70 dark:bg-gray-900/60 text-[#2E7D32] rounded-full text-sm font-medium">
+          <span className="px-4 py-2 bg-white/95 dark:bg-gray-900/90 text-[#2E7D32] rounded-full text-sm font-medium">
             ⭐ Best Sellers
           </span>
         </div>

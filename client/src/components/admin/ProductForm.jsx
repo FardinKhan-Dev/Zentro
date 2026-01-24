@@ -347,7 +347,7 @@ const ProductForm = () => {
                                                 <FiTrash2 className="w-4 h-4" />
                                             </button>
                                         </div>
-                                        <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-green-600 text-white text-[10px] rounded font-medium">
+                                        <div className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-green-700 text-white text-[10px] rounded font-medium">
                                             Saved
                                         </div>
                                     </div>

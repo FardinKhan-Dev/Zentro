@@ -110,7 +110,7 @@ const Home = () => {
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 max-w-xs">{tip.desc}</p>
                       </div>
                     </div>
-                    <div className="p-3 bg-green-600 rounded-full group-hover:bg-green-700 group-hover:text-white transition-all duration-300">
+                    <div className="p-3 bg-green-700 rounded-full group-hover:bg-green-800 group-hover:text-white transition-all duration-300">
                       <FiArrowRight className="w-5 h-5 text-black dark:text-white group-hover:text-white" />
                     </div>
                   </motion.div>

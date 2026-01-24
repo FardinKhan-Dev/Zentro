@@ -133,7 +133,7 @@ const OrderDetailPage = () => {
                                 <div className="relative mx-4">
                                     <div className="absolute top-1/2 left-4 right-4 h-1 bg-gray-200 dark:bg-zinc-700 -translate-y-1/2 rounded-full" />
                                     <div
-                                        className="absolute top-1/2 left-4 right-4 h-1 bg-green-600 -translate-y-1/2 rounded-full transition-all duration-1000 ease-out"
+                                        className="absolute top-1/2 left-4 right-4 h-1 bg-green-700 -translate-y-1/2 rounded-full transition-all duration-1000 ease-out"
                                         style={{
                                             width: `${order.orderStatus === 'delivered' ? '100%' :
                                                 order.orderStatus === 'shipped' ? '66%' :
@@ -159,7 +159,7 @@ const OrderDetailPage = () => {
 
                                             return (
                                                 <div key={step.label} className="flex flex-col items-center gap-2 relative">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-zinc-900 z-10 shadow-sm transition-colors duration-300 ${isCompleted ? 'bg-green-600 text-white' : 'bg-white dark:bg-zinc-800 border-2 border-gray-200 dark:border-zinc-700 text-gray-300 dark:text-zinc-600'
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ring-4 ring-white dark:ring-zinc-900 z-10 shadow-sm transition-colors duration-300 ${isCompleted ? 'bg-green-700 text-white' : 'bg-white dark:bg-zinc-800 border-2 border-gray-200 dark:border-zinc-700 text-gray-300 dark:text-zinc-600'
                                                         }`}>
                                                         <step.icon size={14} />
                                                     </div>

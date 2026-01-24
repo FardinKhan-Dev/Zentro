@@ -269,7 +269,7 @@ const ProductDetail = () => {
                   ? 'bg-gray-50 text-gray-600 border-gray-100'
                   : 'bg-red-50 text-red-600 border-red-100'
                   }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${product.stock > 0 ? 'bg-green-600' : 'bg-red-500'}`}></span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${product.stock > 0 ? 'bg-green-700' : 'bg-red-500'}`}></span>
                   {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                 </span>
               </div>
