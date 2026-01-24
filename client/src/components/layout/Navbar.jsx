@@ -355,6 +355,7 @@ const Navbar = () => {
           {/* THEME TOGGLE */}
           <button
             onClick={toggleTheme}
+            aria-label="Toggle Dark Mode"
             className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
           >
             {darkMode ? (
@@ -369,6 +370,7 @@ const Navbar = () => {
             <div ref={userMenuRef} className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
+                aria-label="Open User Menu"
                 className="flex items-center p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
               >
                 <div className="w-8 h-8 bg-[#7FC77D] rounded-full flex items-center justify-center text-white font-semibold">
@@ -412,6 +414,7 @@ const Navbar = () => {
           ) : (
             <button
               onClick={() => dispatch(openAuthDrawer('login'))}
+              aria-label="Login"
               className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"
             >
               <FiUser className="w-6 h-6 text-gray-900 dark:text-gray-200" />
@@ -421,6 +424,7 @@ const Navbar = () => {
           {/* MOBILE MENU BUTTON */}
           <button
             onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open Menu"
             className="lg:hidden p-2 hover:bg-gray-700 dark:hover:bg-gray-200 rounded-lg"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor">

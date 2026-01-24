@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zentro-cyan.vercel.app/sitemap.xml
