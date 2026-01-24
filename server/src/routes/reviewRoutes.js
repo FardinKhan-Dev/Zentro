@@ -18,10 +18,12 @@ router.route('/')
 router.route('/check-eligibility/:productId')
     .get(protect, checkReviewEligibility);
 
-router.route('/:productId')
+// Get reviews for a product (must come before /:id to avoid conflicts)
+router.route('/product/:productId')
     .get(getReviews);
 
-router.route('/:id')
+// Delete a specific review by review ID
+router.route('/review/:id')
     .delete(protect, validateRequest(deleteReviewSchema), deleteReview);
 
 export default router;

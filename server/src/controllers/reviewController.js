@@ -2,6 +2,8 @@ import { AppError, catchAsync } from '../utils/errorHandler.js';
 import { customResponse } from '../utils/response.js';
 import { uploadBufferToCloudinary } from '../utils/uploadUtils.js';
 import Order from '../models/Order.js';
+import Review from '../models/Review.js';
+import Product from '../models/Product.js';
 
 /**
  * calculateAverageRating
@@ -134,7 +136,7 @@ export const createReview = catchAsync(async (req, res, next) => {
 
 /**
  * @desc    Get reviews for a product
- * @route   GET /api/reviews/:productId
+ * @route   GET /api/reviews/product/:productId
  * @access  Public
  */
 export const getReviews = catchAsync(async (req, res, next) => {
@@ -151,7 +153,7 @@ export const getReviews = catchAsync(async (req, res, next) => {
 
 /**
  * @desc    Delete a review
- * @route   DELETE /api/reviews/:id
+ * @route   DELETE /api/reviews/review/:id
  * @access  Private (Owner or Admin)
  */
 export const deleteReview = catchAsync(async (req, res, next) => {
